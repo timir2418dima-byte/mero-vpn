@@ -32,7 +32,7 @@ const PLANS = {
 const PERIOD = { m: { label: '1 месяц', days: 30 }, y: { label: '12 месяцев', days: 365 } };
 
 // ---------------------------------------------------------------- storage
-let db = { users: {}, keys: [], orders: [], seq: 0 };
+let db = { users: {}, keys: [], orders: [], seq: 0, settings: {} };
 try { db = Object.assign(db, JSON.parse(fs.readFileSync(DB_FILE, 'utf8'))); } catch { /* first run */ }
 let saveTimer = null;
 function save() {
@@ -260,20 +260,46 @@ async function startPayment(chatId, u, id, b) {
       payload: `order:${order.n}`, currency: 'XTR', prices: [{ label: `${p.name}, ${PERIOD[b].label}`, amount: b === 'y' ? p.starsY : p.starsM }],
     });
   }
+  const details = db.settings?.payDetails;
+  if (details) {
+    return send(chatId,
+      `<b>Заявка №${order.n}</b>\n${p.name}, ${PERIOD[b].label}\n\n` +
+      `Переведите <b>${rub(order.price)}</b> по реквизитам:\n${esc(details)}\n\n` +
+      `В комментарии к переводу укажите: <code>MERO ${order.n}</code>\n\n` +
+      `После перевода нажмите «Я оплатил» и пришлите сюда скриншот чека. Ключ придёт, как только мы увидим оплату.`,
+      kb([[{ text: '✅ Я оплатил', callback_data: `claim:${order.n}` }], [{ text: '💬 Поддержка', callback_data: 'support' }]]));
+  }
   await send(chatId,
     `<b>Заявка №${order.n} создана</b>\n\n${p.name}, ${PERIOD[b].label}: <b>${rub(order.price)}</b>\n\n` +
     `Администратор пришлёт реквизиты в этот чат. После оплаты ключ придёт автоматически.`,
     kb([[{ text: '💬 Написать в поддержку', callback_data: 'support' }]]));
-  await notifyAdmins(
-    `<b>Новая заявка №${order.n}</b>\n${p.name}, ${PERIOD[b].label}, ${rub(order.price)}\n` +
-    `Пользователь: ${esc(u.name)} ${u.username ? '@' + u.username : ''}\nID: <code>${u.id}</code>\n\nОтветьте на это сообщение, чтобы написать пользователю.`,
-    kb([[{ text: '✅ Оплата получена', callback_data: `paid:${order.n}` }, { text: '✖ Отменить', callback_data: `cancel:${order.n}` }]]));
+  await notifyAdmins(orderCard(order, u, 'Новая заявка'), orderButtons(order));
+}
+
+const orderCard = (o, u, title) =>
+  `<b>${title} №${o.n}</b>\n${PLANS[o.plan].name}, ${PERIOD[o.bill].label}, ${rub(o.price)}\n` +
+  `Пользователь: ${esc(u.name)} ${u.username ? '@' + u.username : ''}\nID: <code>${u.id}</code>\n\n` +
+  `Проверьте поступление в банке и нажмите «Оплата получена». Ответьте на это сообщение, чтобы написать пользователю.`;
+const orderButtons = o => kb([[{ text: '✅ Оплата получена', callback_data: `paid:${o.n}` }, { text: '✖ Отменить', callback_data: `cancel:${o.n}` }]]);
+const openOrder = o => o && (o.status === 'new' || o.status === 'claimed');
+
+// the client says they paid: tell the admins and wait for a receipt screenshot
+async function claimOrder(chatId, u, n) {
+  const o = db.orders.find(x => x.n === n && x.user === u.id);
+  if (!openOrder(o)) return send(chatId, 'Эта заявка уже обработана.');
+  if (o.status !== 'claimed') {
+    o.status = 'claimed'; o.claimedAt = Date.now();
+    await notifyAdmins(orderCard(o, u, '💰 Клиент сообщил об оплате, заявка'), orderButtons(o));
+  }
+  u.awaitReceipt = n; save();
+  return send(chatId, 'Спасибо! Пришлите сюда скриншот чека, так мы найдём платёж быстрее. Ключ придёт в этот чат после проверки.');
 }
 
 async function confirmOrder(n, by) {
   const o = db.orders.find(x => x.n === n);
-  if (!o || o.status !== 'new') return 'Заявка уже обработана';
+  if (!openOrder(o)) return 'Заявка уже обработана';
   const u = db.users[o.user];
+  if (u.awaitReceipt === n) u.awaitReceipt = null;
   const ok = await grant(u, o.plan, PERIOD[o.bill].days, `Оплата получена, спасибо`);
   if (!ok) return 'Нет свободных ключей: добавьте /addkey и нажмите ещё раз';
   o.status = 'paid'; o.by = by; save();
@@ -352,6 +378,19 @@ async function onMessage(msg) {
     return send(msg.chat.id, 'Не знаю такой команды. Откройте меню: /start');
   }
 
+  // receipt screenshot for a claimed order goes straight to the admins
+  if (u.awaitReceipt && (msg.photo || msg.document)) {
+    const o = db.orders.find(x => x.n === u.awaitReceipt);
+    u.awaitReceipt = null; save();
+    if (openOrder(o)) {
+      for (const a of ADMIN_IDS) {
+        await call('copyMessage', { chat_id: a, from_chat_id: msg.chat.id, message_id: msg.message_id }).catch(() => {});
+        await send(a, orderCard(o, u, '🧾 Чек к заявке'), orderButtons(o)).catch(() => {});
+      }
+      return send(msg.chat.id, 'Чек получили, проверяем оплату. Ключ придёт в этот чат.');
+    }
+  }
+
   if (u.support) {
     u.support = false; save();
     const head = `<b>Поддержка</b> от ${esc(u.name)} ${u.username ? '@' + u.username : ''}\nID: ${u.id}\n` +
@@ -371,8 +410,21 @@ async function onAdmin(msg, c, args, text) {
     const users = Object.values(db.users);
     return send(chat,
       `<b>MERO · админ</b>\nПользователей: ${users.length}\nАктивных: ${users.filter(active).length}\n` +
-      `Ключи: ${PANEL_URL && PANEL_TOKEN ? 'панель H1 (автоматически)' : 'пул, свободно ' + db.keys.length}\nОткрытых заявок: ${db.orders.filter(o => o.status === 'new').length}\n\n` +
-      `/addkey ключ1 ключ2 ... добавить ключи (можно столбиком)\n/give ID дни [lite|mero|family|trial] выдать доступ\n/user ID карточка пользователя\n/broadcast текст рассылка всем`);
+      `Ключи: ${PANEL_URL && PANEL_TOKEN ? 'панель H1 (автоматически)' : 'пул, свободно ' + db.keys.length}\nОткрытых заявок: ${db.orders.filter(openOrder).length}\n` +
+      `Реквизиты: ${db.settings?.payDetails ? 'заданы' : 'не заданы (/setpay)'}\n\n` +
+      `/setpay реквизиты: что увидит клиент при оплате (можно в несколько строк)\n/give ID дни [lite|mero|family|trial] выдать доступ\n/user ID карточка пользователя\n/broadcast текст рассылка всем\n/panel проверить панель VPN`);
+  }
+  if (c === '/setpay') {
+    const details = text.replace(/^\/setpay(@\w+)?\s*/i, '').trim();
+    if (!details) {
+      return send(chat, db.settings?.payDetails
+        ? `Сейчас клиенты видят:\n\n${esc(db.settings.payDetails)}\n\nЧтобы изменить: /setpay новые реквизиты\nЧтобы убрать: /setpay -`
+        : 'Реквизиты не заданы. Пример:\n/setpay СБП: +7 900 000-00-00 (Сбербанк, Дмитрий Т.)');
+    }
+    db.settings = db.settings || {};
+    db.settings.payDetails = details === '-' ? '' : details;
+    save();
+    return send(chat, details === '-' ? 'Реквизиты убраны, заявки снова приходят вам без них.' : `Готово. Клиенты будут видеть:\n\n${esc(details)}`);
   }
   if (c === '/panel') {
     if (!PANEL_URL || !PANEL_TOKEN) return send(chat, 'Панель не подключена: задайте PANEL_URL и PANEL_TOKEN в .env.');
@@ -423,10 +475,11 @@ async function onCallback(q) {
     else if (d === 'guide') { const s = guideScreen(); await show(q, s.text, s.extra); }
     else if (d.startsWith('guide:')) { const k = d.split(':')[1]; if (GUIDES[k]) { const s = guideScreen(k); await show(q, s.text, s.extra); } }
     else if (d === 'support') await askSupport(q.message.chat.id, u);
+    else if (d.startsWith('claim:')) await claimOrder(q.message.chat.id, u, +d.split(':')[1]);
     else if (d.startsWith('paid:') && isAdmin(u.id)) answer = await confirmOrder(+d.split(':')[1], u.id);
     else if (d.startsWith('cancel:') && isAdmin(u.id)) {
       const o = db.orders.find(x => x.n === +d.split(':')[1]);
-      if (o && o.status === 'new') { o.status = 'cancelled'; save(); await send(o.user, `Заявка №${o.n} отменена. Если это ошибка, напишите в поддержку.`); answer = 'Отменено'; }
+      if (openOrder(o)) { o.status = 'cancelled'; save(); await send(o.user, `Заявка №${o.n} отменена. Если это ошибка, напишите в поддержку.`); answer = 'Отменено'; }
       else answer = 'Заявка уже обработана';
     }
   } catch (e) { console.error('callback', d, e.message); }
