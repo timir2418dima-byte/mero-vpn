@@ -15,6 +15,9 @@ const TRIAL_DAYS = +(process.env.TRIAL_DAYS || 1);
 const days = n => n + ' ' + (n % 10 === 1 && n % 100 !== 11 ? 'день' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'дня' : 'дней');
 const TRIAL = days(TRIAL_DAYS);
 const PAYMENT_MODE = (process.env.PAYMENT_MODE || 'manual').toLowerCase(); // manual | stars
+// H1 panel on the VPN server; without these the bot hands out keys from the /addkey pool
+const PANEL_URL = (process.env.PANEL_URL || '').replace(/\/+$/, '');
+const PANEL_TOKEN = process.env.PANEL_TOKEN || '';
 const BANNER = path.join(__dirname, 'assets', 'banner.png');
 const DB_FILE = path.join(__dirname, 'data', 'db.json');
 const API = `https://api.telegram.org/bot${TOKEN}/`;
@@ -176,13 +179,50 @@ function guideScreen(k) {
 // ---------------------------------------------------------------- keys and access
 function takeKey() { const k = db.keys.shift() || null; save(); return k; }
 
+// H1 VPN panel: one client per Telegram user, the panel enforces expiry and the device limit.
+async function panel(method, route, body) {
+  const r = await fetch(PANEL_URL + route, {
+    method,
+    headers: { authorization: `Bearer ${PANEL_TOKEN}`, 'content-type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(15000),
+  });
+  const j = await r.json().catch(() => ({}));
+  return { status: r.status, ok: r.ok && j.ok !== false, ...j };
+}
+
+async function panelGrant(u, plan, days) {
+  const name = `tg_${u.id}`;
+  const deviceLimit = PLANS[plan]?.devices || 1;
+  const route = `/api/clients/${encodeURIComponent(name)}`;
+  let r = await panel('POST', '/api/create', { name, days, device_limit: deviceLimit, traffic_limit_gb: 0 });
+  if (r.status === 409) r = await panel('PATCH', route, { days, device_limit: deviceLimit });
+  if (!r.ok) throw new Error(`panel ${r.status}: ${r.error || 'no details'}`);
+  const c = r.client?.subscription_url || r.client?.sub_url ? r.client : (await panel('GET', route)).client;
+  const link = c?.subscription_url || c?.sub_url;
+  if (!link) throw new Error('panel returned no subscription link');
+  return { key: link, expires: c.expires_at ? c.expires_at * 1000 : 0 };
+}
+
 async function grant(u, plan, days, note) {
-  if (!u.key) {
-    u.key = takeKey();
-    if (!u.key) return false;
+  if (PANEL_URL && PANEL_TOKEN) {
+    try {
+      const p = await panelGrant(u, plan, days);
+      u.key = p.key;
+      u.expires = p.expires || Math.max(Date.now(), u.expires) + days * 864e5;
+    } catch (e) {
+      console.error('panel grant failed for', u.id, e.message);
+      await notifyAdmins(`Панель VPN не выдала ключ пользователю <code>${u.id}</code>: ${esc(e.message)}`);
+      return false;
+    }
+  } else {
+    if (!u.key) {
+      u.key = takeKey();
+      if (!u.key) return false;
+    }
+    u.expires = Math.max(Date.now(), u.expires) + days * 864e5;
   }
   u.plan = plan;
-  u.expires = Math.max(Date.now(), u.expires) + days * 864e5;
   u.reminded = false; u.expiredNotified = false;
   save();
   await send(u.id,
@@ -317,8 +357,13 @@ async function onAdmin(msg, c, args, text) {
     const users = Object.values(db.users);
     return send(chat,
       `<b>MERO · админ</b>\nПользователей: ${users.length}\nАктивных: ${users.filter(active).length}\n` +
-      `Свободных ключей: ${db.keys.length}\nОткрытых заявок: ${db.orders.filter(o => o.status === 'new').length}\n\n` +
+      `Ключи: ${PANEL_URL && PANEL_TOKEN ? 'панель H1 (автоматически)' : 'пул, свободно ' + db.keys.length}\nОткрытых заявок: ${db.orders.filter(o => o.status === 'new').length}\n\n` +
       `/addkey ключ1 ключ2 ... добавить ключи (можно столбиком)\n/give ID дни [lite|mero|family|trial] выдать доступ\n/user ID карточка пользователя\n/broadcast текст рассылка всем`);
+  }
+  if (c === '/panel') {
+    if (!PANEL_URL || !PANEL_TOKEN) return send(chat, 'Панель не подключена: задайте PANEL_URL и PANEL_TOKEN в .env.');
+    const r = await panel('GET', '/api/inbounds').catch(e => ({ ok: false, error: e.message }));
+    return send(chat, r.ok ? `Панель на связи. Инбаундов: ${(r.inbounds || r.items || []).length}` : `Панель недоступна: ${esc(r.error || r.status)}`);
   }
   if (c === '/addkey') {
     const keys = text.replace(/^\/addkey(@\w+)?/i, '').split(/\s+/).filter(Boolean);
@@ -408,7 +453,7 @@ async function setup() {
   if (WEBAPP_URL) await call('setChatMenuButton', { menu_button: { type: 'web_app', text: 'MERO VPN', web_app: { url: WEBAPP_URL } } });
   await call('setMyShortDescription', { short_description: 'Быстрый VPN на VLESS Reality. Ключ за минуту, оплата и поддержка прямо в Telegram.' }).catch(() => {});
   await call('setMyDescription', { description: `MERO VPN: быстрый и стабильный VPN на протоколе VLESS Reality.\n\nОдин ключ на все устройства, ноль логов. Нажмите «Старт» и получите ${TRIAL} бесплатно.` }).catch(() => {});
-  console.log(`@${me.username} is running. Mini app: ${WEBAPP_URL || '(WEBAPP_URL not set)'}. Admins: ${ADMIN_IDS.join(', ') || 'none'}`);
+  console.log(`@${me.username} is running. Mini app: ${WEBAPP_URL || '(WEBAPP_URL not set)'}. Admins: ${ADMIN_IDS.join(', ') || 'none'}. Keys: ${PANEL_URL && PANEL_TOKEN ? 'H1 panel ' + PANEL_URL : 'manual pool'}`);
 }
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
