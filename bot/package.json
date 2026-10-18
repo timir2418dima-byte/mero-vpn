@@ -1,0 +1,9 @@
+{
+  "name": "mero-vpn-bot",
+  "private": true,
+  "version": "1.0.0",
+  "description": "MERO VPN Telegram bot with mini app",
+  "main": "bot.js",
+  "scripts": { "start": "node bot.js" },
+  "engines": { "node": ">=18" }
+}

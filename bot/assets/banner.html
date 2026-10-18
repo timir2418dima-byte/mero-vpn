@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>MERO banner</title>
+<style>
+@font-face{font-family:"Geist";src:url(../../fonts/geist-cyrillic.woff2) format("woff2");font-weight:100 900;unicode-range:U+0400-045F}
+@font-face{font-family:"Geist";src:url(../../fonts/geist-latin.woff2) format("woff2");font-weight:100 900;unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:"Geist Mono";src:url(../../fonts/geist-mono-latin.woff2) format("woff2");font-weight:100 900}
+html,body{margin:0;width:1280px;height:640px;overflow:hidden;background:#08090b;color:#eef2f5;font-family:Geist,sans-serif;-webkit-font-smoothing:antialiased}
+.amb i{position:absolute;top:0;left:0;display:block}
+.amb i:nth-child(1){width:560px;height:1380px;transform:translateY(-350px) rotate(-45deg);background:radial-gradient(68.54% 68.72% at 55.02% 31.46%,hsla(200,20%,85%,.09) 0,hsla(200,10%,55%,.02) 50%,transparent 80%)}
+.amb i:nth-child(2){width:240px;height:1380px;transform:rotate(-45deg) translate(5%,-50%);transform-origin:top left;background:radial-gradient(50% 50% at 50% 50%,hsla(200,20%,85%,.06) 0,transparent 100%)}
+.wrap{position:relative;display:grid;grid-template-columns:1.25fr 1fr;align-items:center;height:100%;padding:0 84px;box-sizing:border-box}
+.brand{display:flex;align-items:center;gap:14px;font-weight:640;font-size:28px;letter-spacing:-.02em}
+.brand svg{width:48px;height:48px}
+.brand small{font:500 13px/1 "Geist Mono";letter-spacing:.1em;color:#78838d;padding:6px 8px;border:1px solid rgba(226,236,245,.12);border-radius:8px}
+h1{margin:44px 0 0;font-size:76px;line-height:1.03;letter-spacing:-.045em;font-weight:600;background:linear-gradient(180deg,#77828c 0%,#c6ced5 34%,#f3f6f8 62%);-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:6px}
+p{margin:22px 0 0;font-size:24px;line-height:1.45;color:#a9b3bc;max-width:560px}
+.dev{position:relative;justify-self:center;width:360px;height:360px;display:grid;place-items:center}
+.ring{position:absolute;border-radius:50%;border:1px solid rgba(76,196,234,.3)}
+.ring.a{inset:0;border-color:rgba(76,196,234,.12)}.ring.b{inset:40px;border-color:rgba(76,196,234,.22)}.ring.c{inset:78px;border:2px solid #4cc4ea;box-shadow:0 0 40px rgba(76,196,234,.25)}
+.core{position:relative;width:150px;height:150px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(80% 80% at 50% 20%,#1b3a46,#0c1a20 70%);border:1px solid rgba(76,196,234,.34);color:#4cc4ea;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 30px 60px -16px rgba(76,196,234,.5)}
+.core svg{width:56px;height:56px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.st{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:999px;font-size:16px;border:1px solid rgba(108,197,154,.3);background:rgba(108,197,154,.08);color:#95d7b5;white-space:nowrap}
+.st::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor}
+.line{position:absolute;left:84px;right:84px;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(76,196,234,.6),transparent)}
+</style></head>
+<body><div class="amb"><i></i><i></i></div>
+<div class="wrap">
+  <div>
+    <div class="brand"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#e6ecf0"/><path d="M8.5 22.5v-12l7.5 7 7.5-7v12" fill="none" stroke="#0b0d10" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="8.6" r="2.2" fill="#4cc4ea"/></svg>MERO <small>VPN</small></div>
+    <h1>Интернет, который<br>не выключить</h1>
+    <p>VLESS Reality, один ключ на все устройства, ноль логов.</p>
+  </div>
+  <div class="dev"><span class="ring a"></span><span class="ring b"></span><span class="ring c"></span>
+    <span class="core"><svg viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg></span>
+    <span class="st">Защищено · Амстердам</span></div>
+</div><span class="line"></span></body></html>

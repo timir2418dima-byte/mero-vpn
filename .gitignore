@@ -1,0 +1,5 @@
+.env
+bot/.env
+bot/data/
+node_modules/
+*.tmp
