@@ -24,9 +24,10 @@ const API = `https://api.telegram.org/bot${TOKEN}/`;
 
 // Prices: rubles are shown to people, stars are charged in PAYMENT_MODE=stars.
 const PLANS = {
-  lite:   { name: 'Лайт',  devices: 1, m: 69,  y: 690,  starsM: 50,  starsY: 500 },
-  mero:   { name: 'MERO',  devices: 3, m: 129, y: 1290, starsM: 95,  starsY: 950 },
-  family: { name: 'Семья', devices: 6, m: 199, y: 1990, starsM: 150, starsY: 1500 },
+  // a star costs a buyer roughly 1.5-1.9 ₽, so star prices sit close to the ruble ones
+  lite:   { name: 'Лайт',  devices: 1, m: 69,  y: 690,  starsM: 40,  starsY: 400 },
+  mero:   { name: 'MERO',  devices: 3, m: 129, y: 1290, starsM: 75,  starsY: 750 },
+  family: { name: 'Семья', devices: 6, m: 199, y: 1990, starsM: 115, starsY: 1150 },
 };
 const PERIOD = { m: { label: '1 месяц', days: 30 }, y: { label: '12 месяцев', days: 365 } };
 
@@ -125,9 +126,10 @@ function orderScreen(id, b) {
   const price = b === 'y' ? p.y : p.m;
   const text =
     `<b>Оформление: ${p.name}</b>\n\n` +
-    `Срок: ${PERIOD[b].label}\nУстройств: ${p.devices}\nК оплате: <b>${rub(price)}</b>` +
-    (PAYMENT_MODE === 'stars' ? ` (${b === 'y' ? p.starsY : p.starsM} ⭐)` : '') +
-    `\n\nКлюч придёт в этот чат сразу после подтверждения оплаты.`;
+    `Срок: ${PERIOD[b].label}\nУстройств: ${p.devices}\n` +
+    (PAYMENT_MODE === 'stars'
+      ? `К оплате: <b>${b === 'y' ? p.starsY : p.starsM} ⭐</b> (≈ ${rub(price)})\n\nОплата звёздами Telegram прямо в этом чате, ключ придёт сразу после оплаты.`
+      : `К оплате: <b>${rub(price)}</b>\n\nКлюч придёт в этот чат сразу после подтверждения оплаты.`);
   return { text, extra: kb([[{ text: '✅ Оплатить', callback_data: `pay:${id}:${b}` }], [{ text: '← Другой тариф', callback_data: `plans:${b}` }]]) };
 }
 
@@ -198,9 +200,12 @@ async function panelGrant(u, plan, days) {
   let r = await panel('POST', '/api/create', { name, days, device_limit: deviceLimit, traffic_limit_gb: 0 });
   if (r.status === 409) r = await panel('PATCH', route, { days, device_limit: deviceLimit });
   if (!r.ok) throw new Error(`panel ${r.status}: ${r.error || 'no details'}`);
-  const c = r.client?.subscription_url || r.client?.sub_url ? r.client : (await panel('GET', route)).client;
-  const link = c?.subscription_url || c?.sub_url;
-  if (!link) throw new Error('panel returned no subscription link');
+  const c = r.client?.inbound_links?.length ? r.client : (await panel('GET', route)).client;
+  // the direct vless:// link imports everywhere; the http subscription URL trips up Happ
+  let link = c?.inbound_links?.find(l => l.link)?.link || c?.link || c?.subscription_url || c?.sub_url;
+  if (!link) throw new Error('panel returned no link');
+  // the part after # is the profile name in client apps; keep it short (copy_text caps at 256)
+  if (link.startsWith('vless://')) link = link.replace(/#.*$/, '') + '#MERO%20VPN';
   return { key: link, expires: c.expires_at ? c.expires_at * 1000 : 0 };
 }
 
@@ -307,9 +312,12 @@ async function onMessage(msg) {
     const o = db.orders.find(x => x.n === n);
     if (o) { o.status = 'paid'; o.charge = msg.successful_payment.telegram_payment_charge_id; save(); }
     const ok = o && await grant(u, o.plan, PERIOD[o.bill].days, 'Оплата прошла, спасибо');
+    const charge = msg.successful_payment.telegram_payment_charge_id;
     if (!ok) {
       await send(u.id, 'Оплата получена. Ключ пришлём в течение нескольких минут.');
-      await notifyAdmins(`Оплата Stars по заявке №${n}, но нет свободных ключей.\nID: <code>${u.id}</code>\nВыдать: /give ${u.id} ${o ? PERIOD[o.bill].days : 30} ${o ? o.plan : 'mero'}`);
+      await notifyAdmins(`Оплата Stars по заявке №${n}, но ключ не выдан.\nID: <code>${u.id}</code>\nВыдать: /give ${u.id} ${o ? PERIOD[o.bill].days : 30} ${o ? o.plan : 'mero'}\nВернуть звёзды: /refund ${u.id} ${charge}`);
+    } else {
+      await notifyAdmins(`Оплата Stars №${n}: ${esc(PLANS[o.plan].name)}, ${PERIOD[o.bill].label}, ${msg.successful_payment.total_amount} ⭐\nОт: ${esc(u.name)} ${u.username ? '@' + u.username : ''}\nID: ${u.id}`);
     }
     return;
   }
@@ -333,7 +341,13 @@ async function onMessage(msg) {
     if (c === '/profile' || c === '/key') { const s = profileScreen(u); return send(msg.chat.id, s.text, s.extra); }
     if (c === '/trial') return startTrial(msg.chat.id, u);
     if (c === '/help' || c === '/guide') { const s = guideScreen(); return send(msg.chat.id, s.text, s.extra); }
-    if (c === '/support') return askSupport(msg.chat.id, u);
+    if (c === '/support' || c === '/paysupport') return askSupport(msg.chat.id, u);
+    if (c === '/terms') {
+      return send(msg.chat.id,
+        '<b>Условия MERO VPN</b>\n\nПодписка даёт доступ к VPN на оплаченный срок и число устройств по тарифу. Ключ персональный, передавать его нельзя.\n\n' +
+        'Если VPN не заработал и поддержка не смогла помочь, напишите /paysupport: вернём звёзды за неиспользованную подписку.\n\n' +
+        `Полные условия: ${WEBAPP_URL || 'в мини-приложении'}`);
+    }
     if (isAdmin(u.id)) return onAdmin(msg, c, args, text);
     return send(msg.chat.id, 'Не знаю такой команды. Откройте меню: /start');
   }
@@ -448,6 +462,8 @@ async function setup() {
       { command: 'trial', description: `${TRIAL} бесплатно` },
       { command: 'help', description: 'Инструкции по подключению' },
       { command: 'support', description: 'Написать в поддержку' },
+      { command: 'paysupport', description: 'Вопрос по оплате' },
+      { command: 'terms', description: 'Условия' },
     ],
   });
   if (WEBAPP_URL) await call('setChatMenuButton', { menu_button: { type: 'web_app', text: 'MERO VPN', web_app: { url: WEBAPP_URL } } });
