@@ -106,7 +106,7 @@ function plansScreen(b) {
   const lines = Object.entries(PLANS).map(([, p]) =>
     `<b>${p.name}</b> · ${p.devices} ${p.devices === 1 ? 'устройство' : p.devices < 5 ? 'устройства' : 'устройств'}\n` +
     `${rub(b === 'y' ? p.y : p.m)} за ${PERIOD[b].label}` + (b === 'y' ? ` (≈ ${rub(Math.round(p.y / 12))} в месяц)` : ''));
-  const text = `<b>Тарифы MERO</b>\nВсе 10 локаций и безлимитный трафик в каждом тарифе.\n\n${lines.join('\n\n')}`;
+  const text = `<b>Тарифы MERO</b>\nБезлимитный трафик в каждом тарифе.\n\n${lines.join('\n\n')}`;
   return {
     text,
     extra: kb([
@@ -155,7 +155,7 @@ const GUIDES = {
   android: ['Android', '1. Установите <b>Happ</b> или <b>v2RayTun</b> из Google Play.\n2. Скопируйте ключ в разделе «Мой ключ».\n3. В приложении нажмите «+», затем «Импорт из буфера обмена».\n4. Нажмите кнопку подключения и разрешите VPN.'],
   win: ['Windows', '1. Установите <b>Happ</b> для Windows или <b>Hiddify</b>.\n2. Скопируйте ключ в разделе «Мой ключ».\n3. В приложении выберите «Добавить из буфера».\n4. Включите режим системного прокси или TUN и подключитесь.'],
   mac: ['macOS', '1. Установите <b>Happ</b> или <b>v2RayTun</b> из Mac App Store.\n2. Скопируйте ключ в разделе «Мой ключ».\n3. Нажмите «+» и импортируйте ключ из буфера.\n4. Разрешите VPN-конфигурацию в настройках системы и подключитесь.'],
-  tv: ['Android TV', '1. Установите <b>v2RayTun</b> или <b>Happ</b> из Google Play на телевизоре.\n2. Удобнее всего: откройте ключ на телефоне и отправьте его на ТВ через QR-код в приложении.\n3. Подключитесь и выберите нужную локацию.'],
+  tv: ['Android TV', '1. Установите <b>v2RayTun</b> или <b>Happ</b> из Google Play на телевизоре.\n2. Удобнее всего: откройте ключ на телефоне и отправьте его на ТВ через QR-код в приложении.\n3. Нажмите кнопку подключения.'],
 };
 function guideScreen(k) {
   if (!k) {
@@ -211,7 +211,7 @@ async function startPayment(chatId, u, id, b) {
   db.orders.push(order); save();
   if (PAYMENT_MODE === 'stars') {
     return call('sendInvoice', {
-      chat_id: chatId, title: `MERO VPN · ${p.name}`, description: `${PERIOD[b].label}, до ${p.devices} устройств, все локации`,
+      chat_id: chatId, title: `MERO VPN · ${p.name}`, description: `${PERIOD[b].label}, до ${p.devices} устройств, безлимитный трафик`,
       payload: `order:${order.n}`, currency: 'XTR', prices: [{ label: `${p.name}, ${PERIOD[b].label}`, amount: b === 'y' ? p.starsY : p.starsM }],
     });
   }
@@ -407,7 +407,7 @@ async function setup() {
   });
   if (WEBAPP_URL) await call('setChatMenuButton', { menu_button: { type: 'web_app', text: 'MERO VPN', web_app: { url: WEBAPP_URL } } });
   await call('setMyShortDescription', { short_description: 'Быстрый VPN на VLESS Reality. Ключ за минуту, оплата и поддержка прямо в Telegram.' }).catch(() => {});
-  await call('setMyDescription', { description: `MERO VPN: быстрый и стабильный VPN на протоколе VLESS Reality.\n\nОдин ключ на все устройства, 10 локаций, ноль логов. Нажмите «Старт» и получите ${TRIAL} бесплатно.` }).catch(() => {});
+  await call('setMyDescription', { description: `MERO VPN: быстрый и стабильный VPN на протоколе VLESS Reality.\n\nОдин ключ на все устройства, ноль логов. Нажмите «Старт» и получите ${TRIAL} бесплатно.` }).catch(() => {});
   console.log(`@${me.username} is running. Mini app: ${WEBAPP_URL || '(WEBAPP_URL not set)'}. Admins: ${ADMIN_IDS.join(', ') || 'none'}`);
 }
 

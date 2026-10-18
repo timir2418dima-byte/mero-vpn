@@ -176,7 +176,7 @@ ul,ol{padding:0;list-style:none}
 
 /* hero device: the tilt card */
 .stage{position:relative;z-index:1;perspective:1000px;padding:3.2rem 0 0}
-.tilt-card{position:relative;margin:0 auto;width:100%;max-width:860px;padding:7px;border-radius:var(--r-xl);background:linear-gradient(180deg,#15191e,#0b0d10);
+.tilt-card{position:relative;margin:0 auto;width:100%;max-width:520px;padding:7px;border-radius:var(--r-xl);background:linear-gradient(180deg,#15191e,#0b0d10);
   border:1px solid var(--line-2);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),var(--shadow-cine);transform-origin:50% 50%;transform:rotateX(20deg);transform-style:preserve-3d;will-change:transform}
 .tilt-card::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 40%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
 .tilt-fade{position:absolute;left:-2px;right:-2px;bottom:-2px;height:7%;z-index:6;pointer-events:none;border-radius:0 0 var(--r-xl) var(--r-xl);background:linear-gradient(to top,var(--bg) 6%,transparent)}
@@ -281,7 +281,7 @@ ul,ol{padding:0;list-style:none}
 .con[data-state="busy"] .power .arc .prg{stroke-dashoffset:360}
 .con[data-state="busy"] .con-st{color:#e6c88d;border-color:rgba(216,176,100,.3);background:rgba(216,176,100,.08)}
 @keyframes spin{to{transform:rotate(270deg)}}
-@media (min-width:760px){.con-body{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}.con-side{display:flex}.con-main{padding:26px 26px 20px}}
+@media (min-width:760px){.con-main{padding:26px 26px 20px}}
 
 /* ==========================================================================
    Location marquee
@@ -687,7 +687,6 @@ ul,ol{padding:0;list-style:none}
   <div class="mnav-panel" role="dialog" aria-label="Разделы">
     <a href="#features"><svg class="i"><use href="#i-shield"/></svg>Возможности<svg class="i"><use href="#i-chev"/></svg></a>
     <a href="#how"><svg class="i"><use href="#i-book"/></svg>Как подключить<svg class="i"><use href="#i-chev"/></svg></a>
-    <a href="#locations"><svg class="i"><use href="#i-globe"/></svg>Локации<svg class="i"><use href="#i-chev"/></svg></a>
     <a href="#plans"><svg class="i"><use href="#i-receipt"/></svg>Тарифы<svg class="i"><use href="#i-chev"/></svg></a>
     <a href="#faq"><svg class="i"><use href="#i-help"/></svg>Вопросы<svg class="i"><use href="#i-chev"/></svg></a>
   </div>
@@ -755,33 +754,10 @@ ul,ol{padding:0;list-style:none}
                 <svg class="spark" viewBox="0 0 300 56" preserveAspectRatio="none" aria-hidden="true"><path class="sa" id="sparkA" d=""/><path class="sl" id="sparkL" d=""/></svg>
                 <div class="ip-row"><span>Ваш IP</span><span class="mono" id="ipVal">185.107.***.42</span><span class="tag a" id="ipTag"><svg class="i"><use href="#i-eyeoff"/></svg>Скрыт</span></div>
               </div>
-              <aside class="con-side" aria-label="Серверы">
-                <div class="side-h"><span>Серверы</span><span>пинг</span></div>
-                <div class="side-row on"><span class="cc" style="--h1:#2b6a86;--h2:#173746">NL</span><div><b>Амстердам</b><small>Нидерланды</small></div><span class="ping" style="margin-left:auto">24 мс</span></div>
-                <div class="side-row"><span class="cc" style="--h1:#3f5f8a;--h2:#1f2f47">DE</span><div><b>Франкфурт</b><small>Германия</small></div><span class="ping" style="margin-left:auto">31 мс</span></div>
-                <div class="side-row"><span class="cc" style="--h1:#3f7a64;--h2:#1f3d32">FI</span><div><b>Хельсинки</b><small>Финляндия</small></div><span class="ping" style="margin-left:auto">18 мс</span></div>
-                <div class="side-row"><span class="cc" style="--h1:#3a5f6b;--h2:#1c3036">SE</span><div><b>Стокгольм</b><small>Швеция</small></div><span class="ping" style="margin-left:auto">27 мс</span></div>
-                <div class="side-row"><span class="cc" style="--h1:#8a6330;--h2:#45311a">TR</span><div><b>Стамбул</b><small>Турция</small></div><span class="ping" style="margin-left:auto">44 мс</span></div>
-                <div class="side-foot"><div style="display:flex;justify-content:space-between;font-size:11px"><span>Нагрузка ams-03</span><span class="mono" style="color:var(--text)">38%</span></div><div class="load"><i style="--v:.38"></i></div></div>
-              </aside>
+              
             </div>
           </div>
           <div class="tilt-fade" aria-hidden="true"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================== LOCATIONS MARQUEE ============================== -->
-  <section class="logos" aria-label="Локации серверов">
-    <p class="logos-label">Серверы в 10 странах, переключение в одно касание</p>
-    <div class="marquee" aria-hidden="true">
-      <div class="marquee-track">
-        <div class="marquee-set">
-          <span class="wm"><b>NL</b>Амстердам</span><span class="wm"><b>DE</b>Франкфурт</span><span class="wm"><b>FI</b>Хельсинки</span><span class="wm"><b>SE</b>Стокгольм</span><span class="wm"><b>PL</b>Варшава</span><span class="wm"><b>LV</b>Рига</span><span class="wm"><b>TR</b>Стамбул</span><span class="wm"><b>KZ</b>Алматы</span><span class="wm"><b>GB</b>Лондон</span><span class="wm"><b>US</b>Нью-Йорк</span>
-        </div>
-        <div class="marquee-set">
-          <span class="wm"><b>NL</b>Амстердам</span><span class="wm"><b>DE</b>Франкфурт</span><span class="wm"><b>FI</b>Хельсинки</span><span class="wm"><b>SE</b>Стокгольм</span><span class="wm"><b>PL</b>Варшава</span><span class="wm"><b>LV</b>Рига</span><span class="wm"><b>TR</b>Стамбул</span><span class="wm"><b>KZ</b>Алматы</span><span class="wm"><b>GB</b>Лондон</span><span class="wm"><b>US</b>Нью-Йорк</span>
         </div>
       </div>
     </div>
@@ -817,7 +793,7 @@ ul,ol{padding:0;list-style:none}
               <div class="hub-row"><svg class="i"><use href="#i-tv"/></svg>Телевизор в зале<em style="color:var(--text-3)">2 ч назад</em></div>
             </div>
           </div>
-          <div class="b-copy"><h3>Один ключ на все устройства</h3><p>Бот выдаёт одну ссылку-подписку. Добавили её на телефон, ноутбук и телевизор, и все серверы уже там.</p></div>
+          <div class="b-copy"><h3>Один ключ на все устройства</h3><p>Бот выдаёт одну ссылку-подписку. Добавили её на телефон, ноутбук и телевизор, и VPN работает везде.</p></div>
         </article>
 
         <article class="card b-card b-third rv" style="--i:1">
@@ -846,7 +822,7 @@ ul,ol{padding:0;list-style:none}
           <div class="b-copy"><h3>Скорость без потолка</h3><p>Каналы 1 Гбит/с и никаких лимитов трафика. Видео в 4K не буферизуется.</p></div>
         </article>
 
-        <article class="card b-card b-third rv" style="--i:1">
+        <article class="card b-card b-wide rv" style="--i:1">
           <div class="b-vis v-logs" aria-hidden="true">
             <div class="col"><span class="col-h">Храним</span>
               <span class="lg"><svg class="i"><use href="#i-check"/></svg>Telegram ID</span>
@@ -862,17 +838,7 @@ ul,ol{padding:0;list-style:none}
           <div class="b-copy"><h3>Ноль логов</h3><p>Мы знаем только то, что нужно для подписки. Что вы открываете, не знает никто.</p></div>
         </article>
 
-        <article class="card b-card b-third rv" style="--i:2" id="swapCard">
-          <div class="b-vis v-swap" id="swapVis" aria-hidden="true">
-            <div class="stack">
-              <div class="acct back"><div class="acct-top"><span class="cc" style="--h1:#3f5f8a;--h2:#1f2f47">DE</span><div><b>Франкфурт</b><small>de-01 · нагрузка 22%</small></div><span class="ms">31 мс<small>пинг</small></span></div>
-                <div class="acct-bars"><i style="height:50%"></i><i style="height:62%"></i><i style="height:44%"></i><i style="height:70%"></i><i style="height:58%"></i><i style="height:76%"></i><i style="height:64%"></i><i style="height:82%"></i></div></div>
-              <div class="acct front"><div class="acct-top"><span class="cc">NL</span><div><b>Амстердам</b><small>ams-03 · нагрузка 38%</small></div><span class="ms">24 мс<small>пинг</small></span></div>
-                <div class="acct-bars"><i style="height:40%"></i><i style="height:56%"></i><i style="height:48%"></i><i style="height:66%"></i><i style="height:72%"></i><i style="height:60%"></i><i style="height:86%"></i><i style="height:78%"></i></div></div>
-            </div>
-          </div>
-          <div class="b-copy"><h3>Смена страны за секунду</h3><p>Все локации уже в вашем ключе. Выбрали другую страну, и соединение не рвётся.</p></div>
-        </article>
+        
       </div>
     </div>
   </section>
@@ -921,28 +887,12 @@ ul,ol{padding:0;list-style:none}
     </div>
   </section>
 
-  <!-- ============================== LOCATIONS ============================== -->
-  <section class="section" id="locations" aria-labelledby="loc-title" style="padding-top:0">
-    <div class="wrap">
-      <div class="sec-head rv">
-        <h2 class="h2 grad" id="loc-title">Локации рядом с&nbsp;вами</h2>
-        <p class="lead">Пинг обновляется вживую. Выбирайте страну под задачу: видео, игры или работа.</p>
-      </div>
-      <div class="loc-box rv">
-        <label class="loc-search"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg><span class="sr-only">Поиск локации</span><input id="locQ" type="search" placeholder="Страна или город" autocomplete="off"></label>
-        <div class="loc-list" id="locList"></div>
-        <div class="loc-empty" id="locEmpty" hidden><svg class="i" aria-hidden="true"><use href="#i-globe"/></svg>Такой локации пока нет.<br>Напишите в поддержку, и мы подумаем о ней.</div>
-        <div class="loc-foot"><span id="locCount">10 локаций</span><span>Все входят в любой тариф</span></div>
-      </div>
-    </div>
-  </section>
-
   <!-- ============================== PLANS ============================== -->
   <section class="section" id="plans" aria-labelledby="plans-title" style="padding-top:0">
     <div class="wrap">
       <div class="sec-head center rv">
         <div class="chip3d-wrap" aria-hidden="true"><div class="chip3d"><div class="chip3d-face"><svg class="i"><use href="#i-receipt"/></svg></div></div></div>
-        <h2 class="h2 grad" id="plans-title">Честная цена, все&nbsp;серверы в&nbsp;каждом тарифе</h2>
+        <h2 class="h2 grad" id="plans-title">Честная цена иЧестная цена, все&nbsp;серверы в&nbsp;каждом тарифеnbsp;безлимитный трафик вЧестная цена, все&nbsp;серверы в&nbsp;каждом тарифеnbsp;каждом тарифе</h2>
         <div class="billing" id="billing" role="radiogroup" aria-label="Период оплаты" data-bill="m">
           <span class="billing-thumb" aria-hidden="true"></span>
           <button role="radio" aria-checked="true" data-bill="m">Месяц</button>
@@ -956,7 +906,7 @@ ul,ol{padding:0;list-style:none}
           <div class="price"><span class="price-num">99 ₽</span><span class="price-per">в месяц</span></div>
           <p class="bill-note"></p>
           <p class="desc">Для одного телефона или ноутбука.</p>
-          <ul><li><svg class="i"><use href="#i-check"/></svg>1 устройство</li><li><svg class="i"><use href="#i-check"/></svg>Все 10 локаций</li><li><svg class="i"><use href="#i-check"/></svg>Без лимита трафика</li></ul>
+          <ul><li><svg class="i"><use href="#i-check"/></svg>1 устройство</li><li><svg class="i"><use href="#i-check"/></svg>Без рекламы</li><li><svg class="i"><use href="#i-check"/></svg>Без лимита трафика</li></ul>
         </div>
         <div class="tier feat rv" role="radio" tabindex="0" aria-checked="true" data-plan="mero" data-m="199" style="--i:1">
           <span class="meteor" aria-hidden="true"></span>
@@ -964,14 +914,14 @@ ul,ol{padding:0;list-style:none}
           <div class="price"><span class="price-num">199 ₽</span><span class="price-per">в месяц</span></div>
           <p class="bill-note"></p>
           <p class="desc">Телефон, ноутбук и телевизор на одном ключе.</p>
-          <ul><li><svg class="i"><use href="#i-check"/></svg>3 устройства</li><li><svg class="i"><use href="#i-check"/></svg>Все 10 локаций</li><li><svg class="i"><use href="#i-check"/></svg>Приоритетная поддержка</li></ul>
+          <ul><li><svg class="i"><use href="#i-check"/></svg>3 устройства</li><li><svg class="i"><use href="#i-check"/></svg>Без лимита трафика</li><li><svg class="i"><use href="#i-check"/></svg>Приоритетная поддержка</li></ul>
         </div>
         <div class="tier rv" role="radio" tabindex="-1" aria-checked="false" data-plan="family" data-m="349" style="--i:2">
           <div class="tier-top"><h3>Семья</h3><span class="rd" aria-hidden="true"></span></div>
           <div class="price"><span class="price-num">349 ₽</span><span class="price-per">в месяц</span></div>
           <p class="bill-note"></p>
           <p class="desc">Для всей семьи: каждому свой доступ.</p>
-          <ul><li><svg class="i"><use href="#i-check"/></svg>6 устройств</li><li><svg class="i"><use href="#i-check"/></svg>Все 10 локаций</li><li><svg class="i"><use href="#i-check"/></svg>Приоритетная поддержка</li></ul>
+          <ul><li><svg class="i"><use href="#i-check"/></svg>6 устройств</li><li><svg class="i"><use href="#i-check"/></svg>Без лимита трафика</li><li><svg class="i"><use href="#i-check"/></svg>Приоритетная поддержка</li></ul>
         </div>
       </div>
 
@@ -1009,9 +959,9 @@ ul,ol{padding:0;list-style:none}
         <div class="acc-item"><button class="acc-q" aria-expanded="false" aria-controls="a5" id="q5">Как оплатить и продлить?<span class="pm" aria-hidden="true"><svg class="i"><use href="#i-plus"/></svg></span></button>
           <div class="collapse" id="a5" role="region" aria-labelledby="q5"><div class="acc-a"><p>Выберите тариф в боте и оплатите удобным способом. За день до окончания бот напомнит о продлении, ключ при этом не меняется.</p></div></div></div>
         <div class="acc-item"><button class="acc-q" aria-expanded="false" aria-controls="a6" id="q6">VPN перестал работать, что делать?<span class="pm" aria-hidden="true"><svg class="i"><use href="#i-plus"/></svg></span></button>
-          <div class="collapse" id="a6" role="region" aria-labelledby="q6"><div class="acc-a"><p>Сначала обновите подписку в приложении и попробуйте другую локацию. Если не помогло, напишите в поддержку из бота: перевыпустим ключ или подскажем настройку.</p></div></div></div>
+          <div class="collapse" id="a6" role="region" aria-labelledby="q6"><div class="acc-a"><p>Сначала обновите подписку в приложении и переподключитесь. Если не помогло, напишите в поддержку из бота: перевыпустим ключ или подскажем настройку.</p></div></div></div>
         <div class="acc-item"><button class="acc-q" aria-expanded="false" aria-controls="a7" id="q7">Работает ли с ИИ-сервисами и соцсетями?<span class="pm" aria-hidden="true"><svg class="i"><use href="#i-plus"/></svg></span></button>
-          <div class="collapse" id="a7" role="region" aria-labelledby="q7"><div class="acc-a"><p>Да. Для сервисов, которые недоступны в вашей стране, выберите европейскую или американскую локацию.</p></div></div></div>
+          <div class="collapse" id="a7" role="region" aria-labelledby="q7"><div class="acc-a"><p>Да. Через MERO открываются сервисы, которые недоступны в вашей стране.</p></div></div></div>
       </div>
     </div>
   </section>
@@ -1319,10 +1269,6 @@ function drawWires(){
   ps.forEach(function(p,i){p.setAttribute('d',ds[i%n])});
 }
 drawWires();window.addEventListener('resize',drawWires);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(drawWires);
-var swapVis=$('#swapVis');
-$('#swapCard').addEventListener('click',function(){swapVis.classList.toggle('swapped');haptic('sel')});
-if(!reduce)setInterval(function(){if(!document.hidden&&$('#swapCard').classList.contains('playing'))swapVis.classList.toggle('swapped')},3600);
-
 /* ==========================================================================
    How it works: tabs with auto-advance while visible
    ========================================================================== */
@@ -1343,28 +1289,6 @@ tabs.forEach(function(t,i){
 if(reduce)flow.classList.add('paused');
 if('IntersectionObserver' in window){new IntersectionObserver(function(es){flowVis=es[0].isIntersecting;flow.classList.toggle('paused',!flowVis||userTouched||reduce);schedule()},{threshold:.35}).observe(flow)}
 
-/* ==========================================================================
-   Locations: render, search, live ping
-   ========================================================================== */
-var list=$('#locList');
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-list.innerHTML=CONFIG.servers.map(function(s,i){
-  return '<div class="loc" data-q="'+esc((s.country+' '+s.city+' '+s.cc).toLowerCase())+'"><span class="cc" style="--h1:'+s.h[0]+';--h2:'+s.h[1]+'">'+s.cc+'</span>'+
-    '<div><b>'+esc(s.city)+'</b><small><span>'+esc(s.country)+'</span>'+s.tags.map(function(t){return '<span class="tag">'+esc(t)+'</span>'}).join('')+'</small></div>'+
-    '<div class="r"><span class="mono" data-ping="'+i+'">'+s.ping+' мс</span><div class="load"><i style="--v:'+s.load+'"></i></div></div></div>';
-}).join('');
-$('#locCount').textContent=CONFIG.servers.length+' локаций';
-$('#locQ').addEventListener('input',function(){
-  var q=this.value.trim().toLowerCase(),n=0;
-  $$('.loc',list).forEach(function(r){var ok=!q||r.getAttribute('data-q').indexOf(q)>-1;r.hidden=!ok;if(ok)n++});
-  $('#locEmpty').hidden=n>0;
-});
-var locBox=$('.loc-box'),locVis=false;
-if('IntersectionObserver' in window)new IntersectionObserver(function(es){locVis=es[0].isIntersecting},{threshold:0}).observe(locBox);
-if(!reduce)setInterval(function(){
-  if(!locVis||document.hidden)return;
-  $$('[data-ping]').forEach(function(el){var s=CONFIG.servers[+el.getAttribute('data-ping')];el.textContent=Math.max(8,s.ping+Math.round((Math.random()-.5)*6))+' мс'});
-},1800);
 
 /* ==========================================================================
    Plans: billing switch, tier selection, checkout and Telegram MainButton
