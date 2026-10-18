@@ -21,9 +21,9 @@ const API = `https://api.telegram.org/bot${TOKEN}/`;
 
 // Prices: rubles are shown to people, stars are charged in PAYMENT_MODE=stars.
 const PLANS = {
-  lite:   { name: 'Лайт',  devices: 1, m: 99,  y: 990,  starsM: 75,  starsY: 750 },
-  mero:   { name: 'MERO',  devices: 3, m: 199, y: 1990, starsM: 150, starsY: 1500 },
-  family: { name: 'Семья', devices: 6, m: 349, y: 3490, starsM: 260, starsY: 2600 },
+  lite:   { name: 'Лайт',  devices: 1, m: 69,  y: 690,  starsM: 50,  starsY: 500 },
+  mero:   { name: 'MERO',  devices: 3, m: 129, y: 1290, starsM: 95,  starsY: 950 },
+  family: { name: 'Семья', devices: 6, m: 199, y: 1990, starsM: 150, starsY: 1500 },
 };
 const PERIOD = { m: { label: '1 месяц', days: 30 }, y: { label: '12 месяцев', days: 365 } };
 
