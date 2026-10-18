@@ -91,7 +91,7 @@ const CtaFooter = ({ onPrivacy, onTerms }: Props) => {
           Свободный интернет в&nbsp;одно касание
         </h2>
         <p className="mx-auto mb-8 max-w-xl font-body text-sm font-light text-white/60 md:text-base">
-          Три дня бесплатно и без привязки карты. Ключ придёт в бот за пару секунд, подключение займёт минуту.
+          Первый день бесплатно и без привязки карты. Ключ придёт в бот за пару секунд, подключение займёт минуту.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6">
           <a

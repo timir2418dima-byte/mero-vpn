@@ -10,7 +10,10 @@ const TOKEN = process.env.BOT_TOKEN;
 if (!TOKEN) { console.error('BOT_TOKEN is missing: copy .env.example to .env and fill it in'); process.exit(1); }
 const WEBAPP_URL = process.env.WEBAPP_URL || '';
 const ADMIN_IDS = (process.env.ADMIN_IDS || '').split(',').map(s => s.trim()).filter(Boolean).map(Number);
-const TRIAL_DAYS = +(process.env.TRIAL_DAYS || 3);
+const TRIAL_DAYS = +(process.env.TRIAL_DAYS || 1);
+// 1 день, 2 дня, 5 дней
+const days = n => n + ' ' + (n % 10 === 1 && n % 100 !== 11 ? 'день' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'дня' : 'дней');
+const TRIAL = days(TRIAL_DAYS);
 const PAYMENT_MODE = (process.env.PAYMENT_MODE || 'manual').toLowerCase(); // manual | stars
 const BANNER = path.join(__dirname, 'assets', 'banner.png');
 const DB_FILE = path.join(__dirname, 'data', 'db.json');
@@ -85,7 +88,7 @@ const back = [{ text: '← В меню', callback_data: 'menu' }];
 function menuScreen(u) {
   const status = active(u)
     ? `Подписка <b>${esc(PLANS[u.plan]?.name || 'активна')}</b> до <b>${date(u.expires)}</b>.`
-    : 'Подписки пока нет. Начните с бесплатных ' + TRIAL_DAYS + ' дней.';
+    : `Подписки пока нет. Начните с бесплатного пробного периода: ${TRIAL}.`;
   const text =
     `<b>MERO VPN</b>\n` +
     `Быстрый VPN на протоколе VLESS Reality. Один ключ на все устройства, ноль логов.\n\n` +
@@ -93,7 +96,7 @@ function menuScreen(u) {
   const rows = [
     appBtn(),
     [{ text: '💳 Тарифы', callback_data: 'plans:m' }, { text: '🔑 Мой ключ', callback_data: 'profile' }],
-    [{ text: '🎁 ' + TRIAL_DAYS + ' дня бесплатно', callback_data: 'trial' }, { text: '📖 Инструкции', callback_data: 'guide' }],
+    [{ text: `🎁 ${TRIAL} бесплатно`, callback_data: 'trial' }, { text: '📖 Инструкции', callback_data: 'guide' }],
     [{ text: '💬 Поддержка', callback_data: 'support' }],
   ].filter(r => r.length);
   return { text, extra: kb(rows) };
@@ -195,7 +198,7 @@ async function notifyAdmins(text, extra) {
 async function startTrial(chatId, u) {
   if (u.trialUsed) return send(chatId, 'Пробный период уже был использован. Выберите тариф, чтобы продолжить.', kb([[{ text: '💳 Тарифы', callback_data: 'plans:m' }]]));
   if (active(u)) return send(chatId, 'У вас уже есть активная подписка.', kb([[{ text: '🔑 Мой ключ', callback_data: 'profile' }]]));
-  if (await grant(u, 'trial', TRIAL_DAYS, `Пробный период на ${TRIAL_DAYS} дня включён`)) { u.trialUsed = true; save(); return; }
+  if (await grant(u, 'trial', TRIAL_DAYS, `Пробный период на ${TRIAL} включён`)) { u.trialUsed = true; save(); return; }
   u.trialUsed = true; save();
   await send(chatId, 'Заявка на пробный период принята. Ключ придёт в этот чат, как только администратор его выдаст.');
   await notifyAdmins(`Пробный период: нет свободных ключей.\nПользователь: ${esc(u.name)} ${u.username ? '@' + u.username : ''}\nID: <code>${u.id}</code>\n\nДобавьте ключи: /addkey ключ\nВыдать: /give ${u.id} ${TRIAL_DAYS} trial`);
@@ -377,7 +380,7 @@ async function reminders() {
   for (const u of Object.values(db.users)) {
     if (!u.expires) continue;
     try {
-      if (u.expires > now && u.expires - now < 3 * 864e5 && !u.reminded) {
+      if (u.plan !== 'trial' && u.expires > now && u.expires - now < 864e5 && !u.reminded) {
         u.reminded = true; save();
         await send(u.id, `Подписка MERO заканчивается ${date(u.expires)}. Продлите заранее, ключ останется тем же.`, kb([[{ text: '🔄 Продлить', callback_data: 'plans:m' }]]));
       } else if (u.expires <= now && !u.expiredNotified) {
@@ -397,14 +400,14 @@ async function setup() {
       { command: 'app', description: 'Открыть приложение MERO VPN' },
       { command: 'plans', description: 'Тарифы' },
       { command: 'profile', description: 'Мой ключ и подписка' },
-      { command: 'trial', description: `${TRIAL_DAYS} дня бесплатно` },
+      { command: 'trial', description: `${TRIAL} бесплатно` },
       { command: 'help', description: 'Инструкции по подключению' },
       { command: 'support', description: 'Написать в поддержку' },
     ],
   });
   if (WEBAPP_URL) await call('setChatMenuButton', { menu_button: { type: 'web_app', text: 'MERO VPN', web_app: { url: WEBAPP_URL } } });
   await call('setMyShortDescription', { short_description: 'Быстрый VPN на VLESS Reality. Ключ за минуту, оплата и поддержка прямо в Telegram.' }).catch(() => {});
-  await call('setMyDescription', { description: 'MERO VPN: быстрый и стабильный VPN на протоколе VLESS Reality.\n\nОдин ключ на все устройства, 10 локаций, ноль логов. Нажмите «Старт» и получите 3 дня бесплатно.' }).catch(() => {});
+  await call('setMyDescription', { description: `MERO VPN: быстрый и стабильный VPN на протоколе VLESS Reality.\n\nОдин ключ на все устройства, 10 локаций, ноль логов. Нажмите «Старт» и получите ${TRIAL} бесплатно.` }).catch(() => {});
   console.log(`@${me.username} is running. Mini app: ${WEBAPP_URL || '(WEBAPP_URL not set)'}. Admins: ${ADMIN_IDS.join(', ') || 'none'}`);
 }
 
