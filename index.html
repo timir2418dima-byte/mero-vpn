@@ -535,39 +535,48 @@ ul,ol{padding:0;list-style:none}
 .acc-a p{padding:0 40px 22px 0;color:var(--text-2);max-width:62ch}
 
 /* ==========================================================================
-   CTA + CSS laptop with scroll-opening lid
+   Finale: CTA + footer over a planet horizon.
+   Static SVG instead of video; only opacity/transform animate, paused offscreen.
    ========================================================================== */
-.cta{position:relative;overflow:hidden;padding-top:var(--section)}
-.cta::before{content:"";position:absolute;left:50%;top:0;width:min(1100px,110vw);height:1px;transform:translateX(-50%);background:linear-gradient(90deg,transparent,var(--line-3),transparent)}
-.cta::after{content:"";position:absolute;left:50%;bottom:0;width:min(1000px,120vw);height:70%;transform:translateX(-50%);background:radial-gradient(50% 60% at 50% 100%,rgba(76,196,234,.08),transparent 70%);pointer-events:none}
-.cta-in{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;text-align:center}
-.cta-in .lead{margin-top:1rem}
-.cta-btns{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:1.8rem}
-.mac{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;margin:clamp(48px,7vw,80px) auto 0;perspective:900px;width:min(100%,600px)}
-.mac-lid{width:100%;aspect-ratio:16/10.4;border-radius:18px 18px 8px 8px;background:#050607;padding:9px 9px 12px;border:1px solid #23272c;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);transform-origin:50% 100%;transform:rotateX(-68deg);will-change:transform}
-.mac-screen{position:relative;width:100%;height:100%;overflow:hidden;border-radius:8px;background:#0b0d10}
-.mac-base{width:112%;height:14px;border-radius:0 0 14px 14px;background:linear-gradient(180deg,#2b3036,#15181c);position:relative;box-shadow:0 30px 40px -20px rgba(0,0,0,.9)}
-.mac-base::before{content:"";position:absolute;left:50%;top:0;width:18%;height:6px;transform:translateX(-50%);border-radius:0 0 8px 8px;background:#0e1013}
-.mac-deck{width:112%;margin-top:-1px;padding:12px 18px 0;height:clamp(90px,22vw,170px);background:linear-gradient(180deg,#1e2226,#131619);border-radius:0 0 22px 22px;-webkit-mask-image:linear-gradient(180deg,#000 30%,transparent);mask-image:linear-gradient(180deg,#000 30%,transparent)}
-.kb{display:grid;gap:4px}.kb-row{display:flex;gap:4px}
-.key{flex:1;height:clamp(8px,2vw,16px);border-radius:3px;background:#0a0b0d;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
-.key.w6{flex:6}
-.md{display:flex;flex-direction:column;height:100%;padding:clamp(9px,2.4vw,20px);gap:clamp(6px,1.4vw,12px);font-size:clamp(7px,1.6vw,12px);color:var(--text-2);text-align:left}
-.md-top{display:flex;align-items:center;gap:8px;color:var(--text);font-weight:580;font-size:1.1em}
-.md-top .brand-mark{width:1.7em;height:1.7em}
-.md-top .con-st{margin-left:auto;height:auto;padding:.3em .8em;font-size:.85em}
-.md-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(4px,1vw,10px)}
-.md-kpis div{padding:.8em 1em;border-radius:.7em;border:1px solid var(--line);background:rgba(255,255,255,.02)}
-.md-kpis b{display:block;font-size:1.7em;color:var(--text);font-weight:560;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.md-bars{flex:1;display:flex;align-items:flex-end;gap:.5em;padding:1em;border-radius:.7em;border:1px solid var(--line);background:rgba(255,255,255,.015)}
-.md-bars i{flex:1;border-radius:.25em .25em .1em .1em;background:linear-gradient(180deg,var(--accent),rgba(76,196,234,.12))}
-
-/* footer */
-.foot{position:relative;padding:28px 0 calc(32px + var(--safe-bottom));border-top:1px solid var(--line);margin-top:-1px}
-.foot-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;font-size:.85rem;color:var(--text-3)}
-.foot-links{display:flex;flex-wrap:wrap;gap:4px 16px}
-.foot-links a,.foot-links button{display:inline-flex;align-items:center;gap:6px;min-height:40px;color:var(--text-2);font-size:.85rem}
-.foot-links .i{width:15px;height:15px}
+@font-face{font-family:"Cormorant";src:url(fonts/cormorant-italic-cyrillic.woff2) format("woff2");font-weight:300 700;font-style:italic;font-display:swap;unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"Cormorant";src:url(fonts/cormorant-italic-latin.woff2) format("woff2");font-weight:300 700;font-style:italic;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2212,U+FEFF}
+.finale{position:relative;overflow:hidden;isolation:isolate;padding:clamp(72px,10vw,120px) 0 0;text-align:center;background:linear-gradient(180deg,var(--bg),#000 240px)}
+.hz{position:absolute;inset:auto 0 0;height:min(100%,640px);z-index:0;pointer-events:none}
+.hz svg{position:absolute;inset:0;width:100%;height:100%}
+.hz .rim-live{opacity:.65;animation:breathe 7s ease-in-out infinite;will-change:opacity}
+@keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
+.srv .pt{fill:#d6f5ff}
+.srv .pl{fill:none;stroke:#4cc4ea;stroke-width:1.2;transform-box:fill-box;transform-origin:center;animation:ping 3.6s ease-out infinite;animation-delay:calc(var(--k) * -.36s)}
+@keyframes ping{0%{transform:scale(.4);opacity:.9}70%,100%{transform:scale(2.2);opacity:0}}
+.finale:not(.live) .hz *{animation-play-state:paused}
+.fade-t,.fade-b{position:absolute;left:0;right:0;z-index:1;height:200px;pointer-events:none}
+.fade-t{top:0;background:linear-gradient(to bottom,var(--bg),transparent)}
+.fade-b{bottom:0;height:120px;background:linear-gradient(to top,#000,transparent)}
+.fin-in{position:relative;z-index:2}
+.fin-h{max-width:48rem;margin:0 auto;font-family:"Cormorant",Georgia,serif;font-style:italic;font-weight:500;font-size:clamp(3.1rem,1.9rem + 5vw,5.25rem);line-height:.95;letter-spacing:-.02em;color:#fff;text-wrap:balance}
+.fin-p{max-width:34rem;margin:1.1rem auto 0;font-size:clamp(.92rem,.88rem + .25vw,1.02rem);font-weight:300;line-height:1.6;color:rgba(255,255,255,.6);text-wrap:pretty}
+.fin-btns{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;margin-top:2rem}
+.gbtn{position:relative;display:inline-flex;align-items:center;gap:8px;height:50px;padding:0 22px;border-radius:999px;font-size:.92rem;font-weight:520;letter-spacing:-.005em;white-space:nowrap;
+  transition:transform var(--d-press) var(--ease-snap),background-color var(--d-fast) ease}
+.gbtn:active{transform:scale(.97)}
+.gbtn .i{width:16px;height:16px}
+.gbtn.glass .i{width:20px;height:20px}
+/* liquid glass without backdrop-filter: tinted fill, inner highlight, fading gradient border */
+.gbtn.glass{color:#fff;background-color:rgba(255,255,255,.04);background-image:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 60%);
+  box-shadow:4px 4px 4px rgba(0,0,0,.05),inset 0 1px 1px rgba(255,255,255,.15)}
+.gbtn.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,.2) 20%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 60%,rgba(255,255,255,.2) 80%,rgba(255,255,255,.5) 100%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.gbtn.solid{background:#fff;color:#000}
+@media (hover:hover) and (pointer:fine){.gbtn.glass:hover{background-color:rgba(255,255,255,.1)}.gbtn.solid:hover{background:rgba(255,255,255,.9)}}
+.gbtn:focus-visible{outline:2px solid #fff;outline-offset:3px;border-radius:999px}
+.fin-foot{display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:10px;margin-top:clamp(150px,26vw,240px);padding:22px 0 calc(22px + var(--safe-bottom));border-top:1px solid rgba(255,255,255,.1)}
+.fin-foot p{font-size:.78rem;font-weight:300;color:rgba(255,255,255,.4)}
+.fin-foot nav{display:flex;flex-wrap:wrap;justify-content:center;gap:0 22px}
+.fin-foot nav a,.fin-foot nav button{display:inline-flex;align-items:center;min-height:44px;font-size:.78rem;font-weight:300;color:rgba(255,255,255,.4);transition:color var(--d-fast) ease}
+@media (hover:hover){.fin-foot nav a:hover,.fin-foot nav button:hover{color:rgba(255,255,255,.7)}}
+@media (min-width:768px){.fin-foot{flex-direction:row}}
+@media (max-width:400px){.fin-btns .gbtn{flex:1 1 100%;justify-content:center}}
 
 /* sheet dialog (profile, terms) */
 .sheet{position:fixed;inset:0;z-index:150;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}
@@ -610,7 +619,8 @@ ul,ol{padding:0;list-style:none}
   .js .rv{opacity:1;transform:none}
   .meteor,.beam-track,.power .r2,.power .r3,.wires path.flow,.pkt{display:none}
   .marquee-track{animation:none}
-  .tilt-card,.mac-lid{transform:none!important}
+  .tilt-card{transform:none!important}
+  .hz *{animation:none!important}
   .scan-tags .tag{opacity:1;transform:none}
   .col.no .lg span::after{transform:scaleX(1)}
 }
@@ -641,6 +651,7 @@ ul,ol{padding:0;list-style:none}
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-arrow-ur" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
@@ -1005,48 +1016,58 @@ ul,ol{padding:0;list-style:none}
     </div>
   </section>
 
-  <!-- ============================== CTA ============================== -->
-  <section class="cta" id="start" aria-labelledby="start-title">
-    <div class="wrap">
-      <div class="cta-in rv">
-        <h2 class="h2 grad" id="start-title">Включите MERO и&nbsp;забудьте о&nbsp;блокировках</h2>
-        <p class="lead">Первые 3 дня бесплатно. Ключ придёт в бот через пару секунд.</p>
-        <div class="cta-btns">
-          <a class="btn btn-primary btn-lg" href="https://t.me/mero_vpn_bot?start=trial" data-bot="trial">Попробовать бесплатно<svg class="i i-arr"><use href="#i-arrow"/></svg></a>
-          <a class="btn btn-ghost btn-lg" href="#plans">Смотреть тарифы</a>
-        </div>
+  <!-- ============================== FINALE: CTA + FOOTER ============================== -->
+  <section class="finale" id="start" aria-labelledby="start-title">
+    <div class="hz" aria-hidden="true">
+      <svg viewBox="0 0 1200 600" preserveAspectRatio="xMidYMax slice">
+        <defs>
+          <radialGradient id="hzFill" cx="50%" cy="0%" r="60%"><stop offset="0" stop-color="#0d2028"/><stop offset=".55" stop-color="#03080a"/><stop offset="1" stop-color="#000"/></radialGradient>
+          <pattern id="hzGrid" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="rgba(226,236,245,.09)"/></pattern>
+          <clipPath id="hzClip"><circle cx="600" cy="1500" r="1150"/></clipPath>
+          <linearGradient id="hzRim" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#4cc4ea" stop-opacity="0"/><stop offset=".5" stop-color="#bfefff"/><stop offset="1" stop-color="#4cc4ea" stop-opacity="0"/></linearGradient>
+        </defs>
+        <circle cx="600" cy="1500" r="1150" fill="url(#hzFill)"/>
+        <rect width="1200" height="600" fill="url(#hzGrid)" clip-path="url(#hzClip)"/>
+        <circle cx="600" cy="1500" r="1150" fill="none" stroke="#4cc4ea" stroke-opacity=".07" stroke-width="22"/>
+        <circle cx="600" cy="1500" r="1150" fill="none" stroke="#4cc4ea" stroke-opacity=".14" stroke-width="7"/>
+      </svg>
+      <svg class="rim-live" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMax slice">
+        <circle cx="600" cy="1500" r="1150" fill="none" stroke="url(#hzRim)" stroke-width="1.6"/>
+        <g class="srv" style="--k:0"><circle class="pl" cx="140.4" cy="467.7" r="7"/><circle class="pt" cx="140.4" cy="467.7" r="2.4"/></g>
+          <g class="srv" style="--k:1"><circle class="pl" cx="315.3" cy="437.5" r="7"/><circle class="pt" cx="315.3" cy="437.5" r="2.4"/></g>
+          <g class="srv" style="--k:2"><circle class="pl" cx="422.3" cy="378.0" r="7"/><circle class="pt" cx="422.3" cy="378.0" r="2.4"/></g>
+          <g class="srv" style="--k:3"><circle class="pl" cx="522.4" cy="390.7" r="7"/><circle class="pt" cx="522.4" cy="390.7" r="2.4"/></g>
+          <g class="srv" style="--k:4"><circle class="pl" cx="600.0" cy="360.0" r="7"/><circle class="pt" cx="600.0" cy="360.0" r="2.4"/></g>
+          <g class="srv" style="--k:5"><circle class="pl" cx="657.3" cy="406.5" r="7"/><circle class="pt" cx="657.3" cy="406.5" r="2.4"/></g>
+          <g class="srv" style="--k:6"><circle class="pl" cx="737.5" cy="380.4" r="7"/><circle class="pt" cx="737.5" cy="380.4" r="2.4"/></g>
+          <g class="srv" style="--k:7"><circle class="pl" cx="829.5" cy="420.1" r="7"/><circle class="pt" cx="829.5" cy="420.1" r="2.4"/></g>
+          <g class="srv" style="--k:8"><circle class="pl" cx="931.5" cy="415.6" r="7"/><circle class="pt" cx="931.5" cy="415.6" r="2.4"/></g>
+          <g class="srv" style="--k:9"><circle class="pl" cx="1070.0" cy="492.2" r="7"/><circle class="pt" cx="1070.0" cy="492.2" r="2.4"/></g>
+      </svg>
+    </div>
+    <div class="fade-t" aria-hidden="true"></div>
+    <div class="fade-b" aria-hidden="true"></div>
+
+    <div class="wrap fin-in">
+      <h2 class="fin-h rv" id="start-title">Свободный интернет в&nbsp;одно касание</h2>
+      <p class="fin-p rv" style="--i:1">Три дня бесплатно и без привязки карты. Ключ придёт в бот за пару секунд, подключение займёт минуту.</p>
+      <div class="fin-btns rv" style="--i:2">
+        <a class="gbtn glass" href="#plans">Смотреть тарифы<svg class="i" aria-hidden="true"><use href="#i-arrow-ur"/></svg></a>
+        <a class="gbtn solid" href="https://t.me/mero_vpn_bot?start=trial" data-bot="trial">Попробовать бесплатно<svg class="i" aria-hidden="true"><use href="#i-arrow-ur"/></svg></a>
       </div>
-      <div class="mac" aria-hidden="true">
-        <div class="mac-lid" id="macLid">
-          <div class="mac-screen">
-            <div class="md">
-              <div class="md-top"><svg class="brand-mark"><use href="#brand"/></svg>MERO · неделя<span class="con-st">Защищено</span></div>
-              <div class="md-kpis"><div>Трафик<b>46.2 ГБ</b></div><div>Устройства<b>3</b></div><div>Утечки DNS<b>0</b></div></div>
-              <div class="md-bars"><i style="height:38%"></i><i style="height:52%"></i><i style="height:44%"></i><i style="height:70%"></i><i style="height:62%"></i><i style="height:88%"></i><i style="height:74%"></i></div>
-            </div>
-          </div>
-        </div>
-        <div class="mac-base"></div>
-        <div class="mac-deck"><div class="kb">
-          <div class="kb-row"><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i></div>
-          <div class="kb-row"><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i></div>
-          <div class="kb-row"><i class="key"></i><i class="key"></i><i class="key"></i><i class="key w6"></i><i class="key"></i><i class="key"></i><i class="key"></i></div>
-        </div></div>
-      </div>
+
+      <footer class="fin-foot">
+        <p>© 2026 MERO VPN. Все права защищены.</p>
+        <nav aria-label="Документы и поддержка">
+          <button type="button" id="privacyBtn" aria-haspopup="dialog" aria-controls="privacySheet">Конфиденциальность</button>
+          <button type="button" id="termsBtn" aria-haspopup="dialog" aria-controls="termsSheet">Условия</button>
+          <a href="https://t.me/mero_vpn_bot?start=support" data-bot="support">Поддержка</a>
+        </nav>
+      </footer>
     </div>
   </section>
 </main>
 
-<footer class="foot">
-  <div class="wrap foot-in">
-    <span>© 2026 MERO VPN</span>
-    <div class="foot-links">
-      <a href="https://t.me/mero_vpn_bot?start=support" data-bot="support"><svg class="i"><use href="#i-headset"/></svg>Поддержка</a>
-      <a href="https://t.me/mero_vpn_bot?start=guide" data-bot="guide"><svg class="i"><use href="#i-book"/></svg>Инструкции</a>
-      <button type="button" id="termsBtn" aria-haspopup="dialog" aria-controls="termsSheet"><svg class="i"><use href="#i-file"/></svg>Условия</button>
-    </div>
-  </div>
-</footer>
 
 <!-- profile sheet -->
 <div class="sheet" id="profileSheet" aria-hidden="true">
@@ -1064,6 +1085,21 @@ ul,ol{padding:0;list-style:none}
   </div>
 </div>
 
+<!-- privacy sheet -->
+<div class="sheet" id="privacySheet" aria-hidden="true">
+  <div class="sheet-scrim" data-close></div>
+  <div class="sheet-panel terms" role="dialog" aria-modal="true" aria-labelledby="privT">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="sheet-h"><h2 id="privT">Конфиденциальность</h2><button class="icon-btn" data-close aria-label="Закрыть"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <h3>Что мы храним</h3>
+    <p>Telegram ID, имя из профиля Telegram, срок подписки и выданный ключ. Это нужно, чтобы выдавать доступ и напоминать о продлении.</p>
+    <h3>Что мы не храним</h3>
+    <p>Историю посещений, IP-адреса, DNS-запросы и время сессий. Через VPN-серверы этот трафик проходит, но не записывается.</p>
+    <h3>Удаление данных</h3>
+    <p>Напишите в поддержку в боте, и мы удалим ваш аккаунт и ключ.</p>
+  </div>
+</div>
+
 <!-- terms sheet -->
 <div class="sheet" id="termsSheet" aria-hidden="true">
   <div class="sheet-scrim" data-close></div>
@@ -1072,8 +1108,6 @@ ul,ol{padding:0;list-style:none}
     <div class="sheet-h"><h2 id="termsT">Условия использования</h2><button class="icon-btn" data-close aria-label="Закрыть"><svg class="i"><use href="#i-x"/></svg></button></div>
     <h3>Сервис</h3>
     <p>MERO VPN предоставляет доступ к зашифрованному соединению на срок оплаченной подписки. Ключ персональный, передавать его третьим лицам нельзя.</p>
-    <h3>Данные</h3>
-    <p>Мы храним Telegram ID, срок подписки и выданный ключ. Историю посещений, IP-адреса и DNS-запросы не записываем.</p>
     <h3>Запрещено</h3>
     <p>Использовать сервис для рассылки спама, атак на чужие ресурсы и любых действий, нарушающих закон. За такие действия доступ блокируется без возврата средств.</p>
     <h3>Контакты</h3>
@@ -1186,6 +1220,9 @@ $('#menuBtn').addEventListener('click',function(){var m=$('#mnav');if(m.classLis
 $$('#mnav a').forEach(function(a){a.addEventListener('click',function(){closeLayer($('#mnav'))})});
 $('#meBtn').addEventListener('click',function(){openLayer($('#profileSheet'),this)});
 $('#termsBtn').addEventListener('click',function(){openLayer($('#termsSheet'),this)});
+$('#privacyBtn').addEventListener('click',function(){openLayer($('#privacySheet'),this)});
+var fin=$('.finale');
+if('IntersectionObserver' in window&&!reduce)new IntersectionObserver(function(es){fin.classList.toggle('live',es[0].isIntersecting)},{threshold:0}).observe(fin);
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape')closeAll();
   if(e.key==='Tab'){var open=$('.sheet.open [role=dialog],.mnav.open [role=dialog]');if(!open)return;
@@ -1212,7 +1249,7 @@ if('IntersectionObserver' in window&&!reduce){
 /* ==========================================================================
    Scroll-linked: tilt card stands up, laptop lid opens
    ========================================================================== */
-var tilt=$('#tilt'),lid=$('#macLid'),ticking=false;
+var tilt=$('#tilt'),lid=null,ticking=false;
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function scrollFx(){
   ticking=false;
