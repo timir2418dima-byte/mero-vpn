@@ -44,7 +44,9 @@ function save() {
     fs.renameSync(tmp, DB_FILE);
   }, 200);
 }
+const fresh = new Set();   // users created in this update: their first /start decides the source
 function user(from) {
+  if (!db.users[from.id]) fresh.add(from.id);
   const u = db.users[from.id] || (db.users[from.id] = { id: from.id, joined: Date.now(), trialUsed: false, expires: 0, key: null, plan: null });
   u.name = [from.first_name, from.last_name].filter(Boolean).join(' ');
   u.username = from.username || null;
@@ -101,6 +103,7 @@ function menuScreen(u) {
     appBtn(),
     [{ text: '💳 Тарифы', callback_data: 'plans:m' }, { text: '🔑 Мой ключ', callback_data: 'profile' }],
     [{ text: `🎁 ${TRIAL} бесплатно`, callback_data: 'trial' }, { text: '📖 Инструкции', callback_data: 'guide' }],
+    [{ text: '🤝 Пригласить друга (+3 дня)', callback_data: 'invite' }],
     [{ text: '💬 Поддержка', callback_data: 'support' }],
   ].filter(r => r.length);
   return { text, extra: kb(rows) };
@@ -150,9 +153,64 @@ function profileScreen(u) {
     extra: kb([
       [{ text: '📋 Скопировать ключ', copy_text: { text: u.key } }],
       [{ text: '🔄 Продлить', callback_data: 'plans:m' }, { text: '📖 Как подключить', callback_data: 'guide' }],
+      [{ text: '🤝 Пригласить друга (+3 дня)', callback_data: 'invite' }],
       back,
     ]),
   };
+}
+
+// ---------------------------------------------------------------- referrals and traffic sources
+const REF_DAYS = 3;
+let BOT_USERNAME = 'mero_vpn_bot';
+const ACTION_PARAMS = /^(trial|profile|guide|support|buy_\w+)$/;
+const refLink = u => `https://t.me/${BOT_USERNAME}?start=ref_${u.id}`;
+
+async function noteSource(u, param) {
+  if (!fresh.has(u.id)) return;
+  fresh.delete(u.id);
+  const ref = /^ref_(\d+)$/.exec(param || '');
+  if (ref && db.users[ref[1]] && +ref[1] !== u.id) {
+    u.ref = +ref[1]; u.source = 'ref';
+    await send(u.ref, `🤝 По вашей ссылке пришёл новый пользователь. Как только он оформит подписку, вам начислится +${days(REF_DAYS)}.`).catch(() => {});
+  } else if (param && /^[a-z0-9_-]{1,32}$/i.test(param) && !ACTION_PARAMS.test(param)) u.source = param.toLowerCase();
+  else u.source = param ? 'app' : 'direct';   // trial/buy links come from the mini app or the site
+  save();
+}
+
+function inviteScreen(u) {
+  const friends = Object.values(db.users).filter(x => x.ref === u.id);
+  const paid = friends.filter(x => x.refRewarded).length;
+  const link = refLink(u);
+  const share = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Быстрый VPN прямо в Telegram, первый день бесплатно')}`;
+  return {
+    text: `<b>Приведи друга и получи +${days(REF_DAYS)}</b>\n\n` +
+      `Отправьте другу свою ссылку. Когда он оформит любую подписку, мы добавим вам ${days(REF_DAYS)} бесплатно. Друзей можно звать сколько угодно.\n\n` +
+      `Ваша ссылка:\n<code>${link}</code>\n\nПришло по ссылке: ${friends.length}\nОформили подписку: ${paid}`,
+    extra: kb([[{ text: '📤 Отправить другу', url: share }], [{ text: '📋 Скопировать ссылку', copy_text: { text: link } }], back]),
+  };
+}
+
+// the first paid order of an invited user adds days to whoever invited them
+async function rewardReferrer(u) {
+  if (!u.ref || u.refRewarded) return;
+  const r = db.users[u.ref];
+  if (!r) return;
+  u.refRewarded = true; save();
+  const plan = r.plan && r.plan !== 'trial' ? r.plan : 'lite';
+  const ok = await grant(r, plan, REF_DAYS, `🎁 Друг оформил подписку: +${days(REF_DAYS)} к вашему доступу`);
+  if (!ok) await notifyAdmins(`Не удалось начислить реферальный бонус пользователю <code>${r.id}</code>. Выдать вручную: /give ${r.id} ${REF_DAYS} ${plan}`);
+}
+
+function sourceStats() {
+  const paidUsers = new Set(db.orders.filter(o => o.status === 'paid').map(o => o.user));
+  const rows = {};
+  for (const u of Object.values(db.users)) {
+    const s = u.source || 'old';
+    const r = rows[s] || (rows[s] = { users: 0, trial: 0, paid: 0 });
+    r.users++; if (u.trialUsed) r.trial++; if (paidUsers.has(u.id)) r.paid++;
+  }
+  return Object.entries(rows).sort((a, b) => b[1].users - a[1].users)
+    .map(([s, r]) => `${esc(s)}: ${r.users} чел. · пробник ${r.trial} · оплатили ${r.paid}`).join('\n') || 'пока пусто';
 }
 
 const GUIDES = {
@@ -303,11 +361,13 @@ async function confirmOrder(n, by) {
   const ok = await grant(u, o.plan, PERIOD[o.bill].days, `Оплата получена, спасибо`);
   if (!ok) return 'Нет свободных ключей: добавьте /addkey и нажмите ещё раз';
   o.status = 'paid'; o.by = by; save();
+  await rewardReferrer(u);
   return `Заявка №${n} подтверждена`;
 }
 
 // ---------------------------------------------------------------- handlers
 async function onStart(msg, u, param) {
+  await noteSource(u, param);
   if (param === 'trial') return startTrial(msg.chat.id, u);
   if (param === 'profile') { const s = profileScreen(u); return send(msg.chat.id, s.text, s.extra); }
   if (param === 'guide') { const s = guideScreen(); return send(msg.chat.id, s.text, s.extra); }
@@ -338,6 +398,7 @@ async function onMessage(msg) {
     const o = db.orders.find(x => x.n === n);
     if (o) { o.status = 'paid'; o.charge = msg.successful_payment.telegram_payment_charge_id; save(); }
     const ok = o && await grant(u, o.plan, PERIOD[o.bill].days, 'Оплата прошла, спасибо');
+    if (ok) await rewardReferrer(u);
     const charge = msg.successful_payment.telegram_payment_charge_id;
     if (!ok) {
       await send(u.id, 'Оплата получена. Ключ пришлём в течение нескольких минут.');
@@ -412,6 +473,8 @@ async function onAdmin(msg, c, args, text) {
       `<b>MERO · админ</b>\nПользователей: ${users.length}\nАктивных: ${users.filter(active).length}\n` +
       `Ключи: ${PANEL_URL && PANEL_TOKEN ? 'панель H1 (автоматически)' : 'пул, свободно ' + db.keys.length}\nОткрытых заявок: ${db.orders.filter(openOrder).length}\n` +
       `Реквизиты: ${db.settings?.payDetails ? 'заданы' : 'не заданы (/setpay)'}\n\n` +
+      `<b>Откуда пришли</b>\n${sourceStats()}\n\n` +
+      `Ссылки с меткой: t.me/${BOT_USERNAME}?start=tt (TikTok), ?start=vk, ?start=yt или любое своё слово латиницей.\n\n` +
       `/setpay реквизиты: что увидит клиент при оплате (можно в несколько строк)\n/give ID дни [lite|mero|family|trial] выдать доступ\n/user ID карточка пользователя\n/broadcast текст рассылка всем\n/panel проверить панель VPN`);
   }
   if (c === '/setpay') {
@@ -473,6 +536,7 @@ async function onCallback(q) {
     else if (d === 'profile') { const s = profileScreen(u); await show(q, s.text, s.extra); }
     else if (d === 'trial') await startTrial(q.message.chat.id, u);
     else if (d === 'guide') { const s = guideScreen(); await show(q, s.text, s.extra); }
+    else if (d === 'invite') { const s = inviteScreen(u); await show(q, s.text, s.extra); }
     else if (d.startsWith('guide:')) { const k = d.split(':')[1]; if (GUIDES[k]) { const s = guideScreen(k); await show(q, s.text, s.extra); } }
     else if (d === 'support') await askSupport(q.message.chat.id, u);
     else if (d.startsWith('claim:')) await claimOrder(q.message.chat.id, u, +d.split(':')[1]);
@@ -506,6 +570,7 @@ async function reminders() {
 // ---------------------------------------------------------------- setup + polling
 async function setup() {
   const me = await call('getMe');
+  BOT_USERNAME = me.username;
   await call('setMyCommands', {
     commands: [
       { command: 'start', description: 'Главное меню' },
