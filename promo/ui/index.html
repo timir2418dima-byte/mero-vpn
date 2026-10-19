@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>MERO UI loop</title>
+<style>
+@font-face{font-family:"Geist";src:url(../../fonts/geist-cyrillic.woff2) format("woff2");font-weight:100 900;unicode-range:U+0400-045F}
+@font-face{font-family:"Geist";src:url(../../fonts/geist-latin.woff2) format("woff2");font-weight:100 900;unicode-range:U+0000-00FF,U+2000-206F,U+2318}
+@font-face{font-family:"Geist Mono";src:url(../../fonts/geist-mono-latin.woff2) format("woff2");font-weight:100 900}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1440px;height:1440px;overflow:hidden;background:#E9E6E1}
+body{font-family:Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#111}
+#cam{position:absolute;left:720px;top:720px;width:0;height:0;transform-origin:0 0}
+#shape{position:absolute;overflow:hidden;box-shadow:0 34px 60px -26px rgba(17,17,17,.32),0 2px 6px rgba(17,17,17,.06)}
+.c{position:absolute;left:50%;top:50%;white-space:nowrap}
+.mono{font-family:"Geist Mono",monospace;font-feature-settings:"zero"}
+svg{display:block;overflow:visible}
+
+#cBtn{display:flex;align-items:center;gap:14px;color:#fff;font-size:34px;font-weight:600;letter-spacing:-.01em}
+#cIsland{display:flex;align-items:center;gap:14px;color:#fff;font-size:28px;font-weight:600;width:392px}
+#cIsland .dot{width:14px;height:14px;border-radius:50%;background:#4CC4EA}
+#cIsland .ms{margin-left:auto;color:#8f8f8f;font-size:24px;font-weight:500}
+#cIsle2{width:500px;height:150px;color:#fff}
+#cIsle2 .l1{position:absolute;left:0;top:18px;font-size:32px;font-weight:600}
+#cIsle2 .l2{position:absolute;left:0;top:70px;font-size:26px;color:#8f8f8f}
+#cIsle2 .code{position:absolute;right:0;top:16px;padding:8px 14px;border-radius:12px;background:#2a2a2a;font-size:24px;font-weight:600}
+#cIsle2 .bars{position:absolute;right:4px;top:82px;display:flex;align-items:flex-end;gap:6px;height:40px}
+#cIsle2 .bars i{display:block;width:10px;border-radius:3px;background:#fff}
+
+#cPlayer{width:592px;height:312px}
+#cover{position:absolute;left:0;top:0;width:132px;height:132px;border-radius:24px;background:#111;display:flex;align-items:flex-end;justify-content:center;gap:9px;padding-bottom:30px}
+#cover i{display:block;width:12px;border-radius:4px;background:#fff}
+#cPlayer .title{position:absolute;left:158px;top:30px;font-size:34px;font-weight:650;letter-spacing:-.02em}
+#cPlayer .sub{position:absolute;left:158px;top:80px;font-size:24px;color:#7c7c7c;font-weight:500}
+#pbtn{position:absolute;left:508px;top:24px;width:84px;height:84px;border-radius:50%;background:#111}
+#pbtn svg{position:absolute;left:22px;top:22px;width:40px;height:40px}
+#ptrack{position:absolute;left:26px;top:244px;width:540px;height:8px;border-radius:4px;background:#E4E1DC}
+#pfill{position:absolute;left:0;top:0;height:8px;border-radius:4px;background:#111}
+#phandle{position:absolute;top:-10px;width:28px;height:28px;margin-left:-14px;border-radius:50%;background:#111}
+#cPlayer .t1,#cPlayer .t2{position:absolute;top:270px;font-size:20px;color:#8a8a8a}
+#cPlayer .t1{left:26px}#cPlayer .t2{right:26px}
+
+#cVol{width:560px;height:60px}
+#spk{position:absolute;left:0;top:10px;width:40px;height:40px}
+#vtrack{position:absolute;left:70px;top:25px;height:10px;border-radius:5px;background:#E4E1DC}
+#vfill{position:absolute;left:0;top:0;height:10px;border-radius:5px;background:#111}
+#vknob{position:absolute;top:-14px;width:38px;height:38px;margin-left:-19px;border-radius:50%;background:#fff;border:2.5px solid #111}
+
+#pill{position:absolute}
+.tab{position:absolute;font-size:32px;font-weight:600;letter-spacing:.02em;transform:translate(-50%,-50%)}
+#chart{position:absolute}
+#tip{position:absolute;padding:10px 16px;border-radius:14px;background:#111;color:#fff;font-size:24px;font-weight:600;transform:translate(-50%,-100%)}
+#tipdot{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#fff;border:4px solid #111}
+
+#cmdRow{position:absolute;display:flex;align-items:center;gap:18px;font-size:30px;font-weight:500}
+#cmdRow .ph{color:#9a9a9a}
+#caret{display:inline-block;width:3px;height:36px;background:#111;margin-left:2px;vertical-align:middle}
+#kbd{position:absolute;padding:6px 12px;border-radius:10px;border:2px solid #D6D2CC;font-size:22px;color:#6f6f6f}
+.row{position:absolute;display:flex;align-items:center;gap:18px;padding:0 22px;height:72px;border-radius:18px;font-size:28px;font-weight:500}
+.row .cc{padding:4px 10px;border-radius:8px;background:#EFECE7;font-size:20px;color:#444}
+.row .pg{margin-left:auto;font-size:22px;color:#8a8a8a}
+.row.sel{background:#111;color:#fff}
+.row.sel .cc{background:#2a2a2a;color:#fff}
+.row.sel .pg{color:#bdbdbd}
+
+#cToast{display:flex;align-items:center;gap:16px;color:#fff;font-size:30px;font-weight:600}
+#cToast .ok{width:42px;height:42px;border-radius:50%;background:#4CC4EA;position:relative}
+#cToast .ok svg{position:absolute;left:9px;top:10px;width:24px;height:22px}
+
+#cursor{position:absolute;left:0;top:0;width:44px;height:60px;transform-origin:4px 4px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.28))}
+</style>
+</head>
+<body>
+<div id="cam">
+  <div id="shape">
+    <div id="cBtn" class="c"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M17.7 6.6a8 8 0 1 1-11.4 0"/></svg>Подключить</div>
+
+    <svg id="cLoad" class="c" width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="6"/>
+      <circle id="arc" cx="32" cy="32" r="26" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="40 200"/></svg>
+    <svg id="cCheck" class="c" width="56" height="56" viewBox="0 0 56 56"><path id="chk" d="M14 29l9 9 19-20" fill="none" stroke="#111" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="44" stroke-dashoffset="44"/></svg>
+
+    <div id="cIsland" class="c"><span class="dot"></span>MERO · Германия<span class="ms mono">24 мс</span></div>
+    <div id="cIsle2" class="c"><div class="l1">Подключено</div><div class="l2 mono" id="timer">00:00:01</div><div class="code mono">DE</div>
+      <div class="bars"><i></i><i></i><i></i><i></i></div></div>
+
+    <div id="cPlayer" class="c">
+      <div id="cover"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="title">Lo-fi Session</div><div class="sub">MERO VPN · 4K</div>
+      <div id="pbtn"><svg viewBox="0 0 24 24"><path id="pl" fill="#fff"/><path id="pr" fill="#fff"/></svg></div>
+      <div id="ptrack"><div id="pfill"></div><div id="phandle"></div></div>
+      <div class="t1 mono" id="pt1">1:12</div><div class="t2 mono">3:45</div>
+    </div>
+
+    <div id="cVol" class="c">
+      <svg id="spk" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" fill="#111"/><path id="w1" d="M15.5 8.5a5 5 0 0 1 0 7"/><path id="w2" d="M18.6 5.4a9.5 9.5 0 0 1 0 13.2"/></svg>
+      <div id="vtrack"><div id="vfill"></div><div id="vknob"></div></div>
+    </div>
+
+    <div id="pill"></div>
+    <div class="tab" id="tDE">DE</div><div class="tab" id="tNL">NL</div><div class="tab" id="tFI">FI</div>
+
+    <svg id="chart" width="640" height="300" viewBox="0 0 640 300">
+      <g stroke="#ECE9E4" stroke-width="2"><path d="M0 40H640M0 130H640M0 220H640"/></g>
+      <path id="line" fill="none" stroke="#4CC4EA" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div id="tipdot"></div><div id="tip" class="mono">184 Мбит/с</div>
+
+    <div id="cmdRow"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span id="q"></span><span id="caret"></span><span class="ph" id="ph">Найти сервер…</span></div>
+    <div id="kbd" class="mono">⌘K</div>
+    <div class="row sel" id="r0"><span class="cc mono">DE</span>Германия<span class="pg mono">24 мс</span></div>
+    <div class="row" id="r1"><span class="cc mono">GE</span>Грузия<span class="pg mono">52 мс</span></div>
+
+    <div id="cToast" class="c"><span class="ok"><svg viewBox="0 0 24 22" fill="none" stroke="#111" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5l6 6L21 4"/></svg></span>Подключено · Германия</div>
+  </div>
+</div>
+<svg id="cursor" viewBox="0 0 22 30"><path d="M2 2v22l6-5.6 4 9 3.6-1.6-4-8.8H20z" fill="#111" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>
+
+<script>
+'use strict';
+const L = 14;                       // loop length: 7 bars at 120 bpm
+const $ = id => document.getElementById(id);
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+
+// ---------- springs: closed-form step response, summed per target change ----------
+const SPR = { ui: [22, .86], fast: [34, .86], slow: [15, .88], cam: [12, .92], cur: [20, .9], drag: [55, .95], press: [40, .8] };
+function step(tau, w, z) {
+  if (tau <= 0) return 0;
+  const s = Math.sqrt(1 - z * z), wd = w * s;
+  return 1 - Math.exp(-z * w * tau) * (Math.cos(wd * tau) + (z / s) * Math.sin(wd * tau));
+}
+// keys: [time, value, springName?]; periodic over L so the loop is seamless
+function track(keys, def = 'ui') {
+  const ks = keys.slice().sort((a, b) => a[0] - b[0]);
+  let prev = ks[ks.length - 1][1];
+  const d = ks.map(([t, v, s]) => { const r = { t, d: v - prev, s: SPR[s || def] }; prev = v; return r; });
+  const base = ks[ks.length - 1][1];
+  return t => {
+    let v = base;
+    for (let c = -1; c <= 0; c++) for (const k of d) if (k.d) v += k.d * step(t - (k.t + c * L), k.s[0], k.s[1]);
+    return v;
+  };
+}
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+function colorTrack(keys, def) {
+  const ch = [0, 1, 2].map(i => track(keys.map(([t, c, s]) => [t, hex(c)[i], s]), def));
+  return t => `rgb(${ch.map(f => Math.round(clamp(f(t), 0, 255))).join(',')})`;
+}
+// content windows: fade in with a short blur, fade out before the next content lands
+function win(t, a, b, fin = .18, fout = .1) {
+  let best = 0;
+  for (const tt of [t, t + L, t - L]) {
+    const i = clamp((tt - a) / fin), o = clamp((b - tt) / fout);
+    best = Math.max(best, Math.min(i, o));
+  }
+  return best;
+}
+function vis(el, op, tf = '') {
+  el.style.opacity = op;
+  el.style.visibility = op < .002 ? 'hidden' : 'visible';
+  el.style.filter = op < .999 ? `blur(${(1 - op) * 7}px)` : 'none';
+  if (tf !== null) el.style.transform = tf;
+}
+const ease = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+
+// ---------- shape ----------
+const SW = track([[1.0, 104], [2.5, 440], [3.0, 560], [3.5, 640], [6.5, 600], [8.0, 208], [9.75, 600], [11.0, 700], [12.0, 640], [13.0, 520], [13.5, 360]]);
+const SH = track([[1.0, 104], [2.5, 96], [3.0, 208], [3.5, 360], [6.5, 104], [8.0, 116], [9.75, 112], [11.0, 460], [12.0, 100], [12.5, 284], [12.625, 200], [13.0, 100], [13.5, 104]]);
+const SR = track([[1.0, 52], [2.5, 48], [3.0, 60], [3.5, 44], [6.5, 52], [8.0, 58], [9.75, 56], [11.0, 44], [12.0, 30], [13.0, 50], [13.5, 52]]);
+const SC = colorTrack([[2.0, '#4CC4EA'], [2.5, '#111111'], [3.5, '#FFFFFF'], [8.0, '#D8D4CE'], [8.5, '#4CC4EA', 'fast'], [9.0, '#D8D4CE', 'fast'], [9.5, '#4CC4EA', 'fast'], [9.75, '#FFFFFF'], [13.0, '#111111'], [13.5, '#111111']]);
+const PRESS = track([[0.5, .95, 'press'], [0.62, 1, 'press'], [3.0, .97, 'press'], [3.12, 1, 'press'], [8.5, .96, 'press'], [8.6, 1, 'press'], [9.0, .96, 'press'], [9.1, 1, 'press'], [9.5, .96, 'press'], [9.6, 1, 'press']]);
+// camera: each state fills ~72% of the frame (cam = 1040 / max(w, 1.45h), capped for tiny states)
+const CAM = track([[1.0, 3.4], [2.5, 2.36], [3.0, 1.86], [3.5, 1.62], [6.5, 1.73], [8.0, 3.4], [9.75, 1.73], [11.0, 1.49], [12.0, 1.62], [13.0, 2.0], [13.5, 2.89]], 'cam');
+
+// knob of the toggle == indicator of the tabs: two edges on different springs
+const PL = track([[7.0, -90], [8.5, 2, 'slow'], [9.0, -90, 'fast'], [9.5, 2, 'slow'], [9.75, -270, 'fast'], [10.0, -84, 'slow'], [10.5, 102, 'slow']]);
+const PR = track([[7.0, -2], [8.5, 90, 'fast'], [9.0, -2, 'slow'], [9.5, 90, 'fast'], [9.75, -102, 'slow'], [10.0, 84, 'fast'], [10.5, 270, 'fast']]);
+const PH = track([[7.0, 88], [9.75, 84]]);
+const PC = colorTrack([[7.0, '#FFFFFF'], [9.75, '#111111']]);
+const ROWY = track([[7.0, 0], [11.0, -174]]);        // tab row climbs to the top of the chart card
+const PM = track([[3.0, 0], [4.0, 1, 'fast'], [5.0, 0, 'fast'], [5.5, 1, 'fast']]);   // play(0) <-> pause(1)
+
+// ---------- cursor (world coordinates, converted to screen through the camera) ----------
+const CUR = [[13.3, 150, 110, 'slow'], [0.15, 30, 12], [0.9, 95, 95], [2.55, 110, 8], [3.25, 254, -90]];
+const gx = -148.5, dragA = [], dragB = [], hover = [];
+for (let i = 0; i <= 8; i++) { const k = i / 8; dragA.push([6.0 + k * .4, gx + (160 - gx) * ease(k), 100, 'drag']); }
+CUR.push([5.62, gx, 100], ...dragA, [6.6, 8, 0]);
+for (let i = 0; i <= 8; i++) { const k = i / 8; dragB.push([7.0 + k * .4, 8 + 242 * ease(k), 0, 'drag']); }
+for (let i = 1; i <= 6; i++) { const k = i / 6; dragB.push([7.4 + k * .3, 250 + 80 * ease(k), 0, 'drag']); }
+CUR.push(...dragB, [7.85, 10, 4], [9.72, 0, 0], [10.2, 186, 0], [10.85, -260, 60]);
+for (let i = 0; i <= 10; i++) { const k = i / 10; hover.push([11.45 + k * .5, -260 + 430 * ease(k), 60 - 20 * k, 'drag']); }
+CUR.push(...hover, [12.05, 250, 200]);
+const CX = track(CUR.map(([t, x, , s]) => [t, x, s || 'cur']), 'cur');
+const CY = track(CUR.map(([t, , y, s]) => [t, y, s || 'cur']), 'cur');
+const CLICKS = [0.5, 3.0, 4.0, 5.0, 5.5, 8.5, 9.0, 9.5, 10.0, 10.5];
+const HOLDS = [[6.0, 6.45], [7.0, 7.75]];
+function cursorDown(t) {
+  if (HOLDS.some(([a, b]) => t >= a - .02 && t <= b)) return 1;
+  return CLICKS.some(c => t >= c - .03 && t < c + .1) ? 1 : 0;
+}
+const CPRESS = track([...CLICKS.flatMap(c => [[c - .03, .84, 'press'], [c + .1, 1, 'press']]),
+  [5.98, .84, 'press'], [6.45, 1, 'press'], [6.98, .84, 'press'], [7.75, 1, 'press']]);
+
+// play/pause polygons that morph point by point
+const PLAY = [[[6, 4], [13, 8], [13, 16], [6, 20]], [[13, 8], [20, 12], [20, 12], [13, 16]]];
+const PAUSE = [[[5, 4], [10, 4], [10, 20], [5, 20]], [[14, 4], [19, 4], [19, 20], [14, 20]]];
+const poly = (a, b, k) => 'M' + a.map((p, i) => `${p[0] + (b[i][0] - p[0]) * k} ${p[1] + (b[i][1] - p[1]) * k}`).join('L') + 'Z';
+
+// chart line (x in chart px, y in chart px; lower y = faster)
+const CHART = [[0, 250], [55, 232], [110, 238], [165, 196], [220, 204], [275, 160], [330, 170], [385, 120], [440, 132], [495, 84], [550, 96], [605, 52], [640, 60]];
+const chartY = x => { for (let i = 1; i < CHART.length; i++) { const [x0, y0] = CHART[i - 1], [x1, y1] = CHART[i]; if (x <= x1) return y0 + (y1 - y0) * (x - x0) / (x1 - x0); } return 60; };
+const linePath = 'M' + CHART.map(p => p.join(' ')).join('L');
+
+function seek(t) {
+  t = ((t % L) + L) % L;
+  const w0 = SW(t), h0 = SH(t);
+  const cam = CAM(t);
+
+  // ----- volume drag drives the slider value and the rubber-band stretch -----
+  const cx = CX(t), cy = CY(t);
+  let vol = .45, stretch = 0;
+  if (t >= 7.0 && t < 7.75) { vol = clamp((cx + 190) / 440); stretch = Math.max(0, cx - 250); }
+  else if (t >= 7.75) { vol = 1; const sr = Math.max(0, CX(7.75) - 250); stretch = sr * (1 - step(t - 7.75, 26, .82)); }
+  const w = w0 + stretch * .6, h = h0 - stretch * .06;
+
+  const shape = $('shape');
+  shape.style.width = w + 'px'; shape.style.height = h + 'px';
+  shape.style.left = -w / 2 + 'px'; shape.style.top = -h / 2 + 'px';
+  shape.style.borderRadius = SR(t) + 'px';
+  shape.style.background = SC(t);
+  shape.style.transform = `scale(${PRESS(t)})`;
+  $('cam').style.transform = `scale(${cam})`;
+
+  // ----- contents -----
+  vis($('cBtn'), win(t, 13.6, 15.0), 'translate(-50%,-50%)');
+  const lo = win(t, 1.08, 2.0);
+  vis($('cLoad'), lo, 'translate(-50%,-50%)');
+  const fillK = clamp((t - 1.5) / .45);
+  $('arc').setAttribute('stroke-dasharray', `${40 + 123 * ease(fillK)} 200`);
+  $('arc').setAttribute('transform', `rotate(${t * 520} 32 32)`);
+  vis($('cCheck'), win(t, 2.05, 2.5), 'translate(-50%,-50%)');
+  $('chk').setAttribute('stroke-dashoffset', 44 * (1 - ease(clamp((t - 2.08) / .22))));
+  vis($('cIsland'), win(t, 2.6, 3.0), 'translate(-50%,-50%)');
+  vis($('cIsle2'), win(t, 3.1, 3.5), 'translate(-50%,-50%)');
+  $('timer').textContent = '00:00:0' + Math.max(1, Math.floor(t - 2.0));
+  [...$('cIsle2').querySelectorAll('.bars i')].forEach((b, i) => { b.style.height = (12 + i * 9) * clamp((t - 3.15 - i * .05) / .15) + 'px'; });
+
+  // player
+  vis($('cPlayer'), win(t, 3.62, 6.52), 'translate(-50%,-50%)');
+  const m = clamp(PM(t), -.05, 1.05);
+  $('pl').setAttribute('d', poly(PLAY[0], PAUSE[0], m)); $('pr').setAttribute('d', poly(PLAY[1], PAUSE[1], m));
+  const pbS = [4.0, 5.0, 5.5].reduce((s, c) => s - .1 * Math.max(0, 1 - Math.abs(t - c - .03) / .1), 1);
+  $('pbtn').style.transform = `scale(${pbS})`;
+  let prog = .18;
+  if (t >= 4.0) prog += .03 * Math.min(1, t - 4.0);
+  if (t >= 5.5) prog += .03 * Math.min(.5, t - 5.5);
+  if (t >= 6.0 && t < 6.45) prog = clamp((cx + 270) / 540);
+  else if (t >= 6.45) prog = clamp((CX(6.45) + 270) / 540);
+  $('pfill').style.width = prog * 540 + 'px';
+  $('phandle').style.left = prog * 540 + 'px';
+  const grab = t >= 5.98 && t < 6.45 ? 1 : 0;
+  $('phandle').style.transform = `scale(${1 + .35 * (grab ? step(t - 5.98, 34, .86) : 1 - step(t - 6.45, 34, .86)) * (t < 7 ? 1 : 0)})`;
+  const secs = Math.round(prog * 225);
+  $('pt1').textContent = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+  const playing = (t >= 4.0 && t < 5.0) || (t >= 5.5 && t < 6.6);
+  [...$('cover').children].forEach((b, i) => {
+    const beat = Math.floor(t * 2) / 2, sinceBeat = t - beat;
+    const amp = playing ? Math.exp(-sinceBeat * 7) * (.55 + .45 * Math.abs(Math.sin(beat * 3.1 + i * 1.7))) : 0;
+    b.style.height = (14 + amp * 58 + (playing ? 6 * Math.sin(t * 9 + i) : 0)) + 'px';
+  });
+
+  // volume
+  vis($('cVol'), win(t, 6.62, 8.0), `translate(-50%,-50%) translateX(${stretch * .3}px)`);
+  const trackW = 440 + stretch * .6;
+  $('vtrack').style.width = trackW + 'px';
+  $('vfill').style.width = vol * trackW + 'px';
+  $('vknob').style.left = vol * trackW + 'px';
+  $('vknob').style.transform = `scale(${t >= 6.98 && t < 7.75 ? 1.18 : 1})`;
+  $('w1').style.opacity = clamp(vol * 2); $('w2').style.opacity = clamp(vol * 2 - 1);
+
+  // pill: toggle knob that becomes the tab indicator
+  const pl = PL(t), pr = PR(t), ph = PH(t), rowY = ROWY(t);
+  const pillOp = win(t, 8.08, 12.0);
+  const pill = $('pill');
+  pill.style.left = w / 2 + pl + 'px'; pill.style.width = Math.max(10, pr - pl) + 'px';
+  pill.style.top = h / 2 + rowY - ph / 2 + 'px'; pill.style.height = ph + 'px';
+  pill.style.borderRadius = ph / 2 + 'px'; pill.style.background = PC(t);
+  pill.style.boxShadow = t < 9.8 ? '0 4px 10px rgba(17,17,17,.18)' : 'none';
+  vis(pill, pillOp, null);
+  const tabOp = win(t, 9.85, 12.0);
+  [['tDE', -186], ['tNL', 0], ['tFI', 186]].forEach(([id, x]) => {
+    const el = $(id);
+    el.style.left = w / 2 + x + 'px'; el.style.top = h / 2 + rowY + 'px';
+    const inside = clamp(Math.min(x + 30 - pl, pr - (x - 30)) / 60);
+    const c = Math.round(17 + (255 - 17) * inside);
+    el.style.color = `rgb(${c},${c},${c})`;
+    vis(el, tabOp, null);
+  });
+
+  // chart
+  const chOp = win(t, 11.1, 12.0);
+  const chart = $('chart');
+  chart.style.left = w / 2 - 320 + 'px'; chart.style.top = h / 2 - 110 + 'px';
+  vis(chart, chOp, null);
+  const ln = $('line');
+  ln.setAttribute('d', linePath);
+  const len = 900;
+  ln.setAttribute('stroke-dasharray', len); ln.setAttribute('stroke-dashoffset', len * (1 - ease(clamp((t - 11.05) / .45))));
+  const tipOp = Math.min(chOp, clamp((t - 11.45) / .12));
+  const chx = clamp(cx + 320, 0, 640), chy = chartY(chx);
+  const dot = $('tipdot'), tip = $('tip');
+  dot.style.left = w / 2 - 320 + chx + 'px'; dot.style.top = h / 2 - 110 + chy + 'px';
+  tip.style.left = w / 2 - 320 + chx + 'px'; tip.style.top = h / 2 - 110 + chy - 26 + 'px';
+  tip.textContent = Math.round(60 + (250 - chy) / 200 * 140) + ' Мбит/с';
+  vis(dot, tipOp, null); vis(tip, tipOp, 'translate(-50%,-100%)');
+
+  // command palette
+  const cmdOp = win(t, 12.1, 13.0);
+  const row = $('cmdRow'), kbd = $('kbd');
+  row.style.left = w / 2 - 290 + 'px'; row.style.top = 50 - 18 + 'px';
+  kbd.style.left = w / 2 + 222 + 'px'; kbd.style.top = 50 - 20 + 'px';
+  vis(row, cmdOp, null); vis(kbd, cmdOp, null);
+  const typed = 'герм'.slice(0, [12.5, 12.625, 12.75, 12.875].filter(x => t >= x).length);
+  $('q').textContent = typed;
+  $('ph').style.display = typed ? 'none' : 'inline';
+  $('caret').style.opacity = (t >= 12.5 || Math.floor((t - 12) * 4) % 2 === 0) ? 1 : 0;
+  const r0 = $('r0'), r1 = $('r1');
+  [r0, r1].forEach((r, i) => { r.style.left = '10px'; r.style.width = (w - 20) + 'px'; r.style.top = 100 + i * 84 + 'px'; });
+  vis(r0, Math.min(cmdOp, win(t, 12.52, 13.0)), null);
+  vis(r1, Math.min(cmdOp, win(t, 12.52, 12.66)), null);
+  r0.style.transform = `scale(${t >= 13.0 - .03 && t < 13.1 ? .97 : 1})`;
+
+  vis($('cToast'), win(t, 13.1, 13.5), 'translate(-50%,-50%)');
+
+  // ----- cursor in screen space -----
+  const sx = 720 + cx * cam, sy = 720 + cy * cam;
+  const cur = $('cursor');
+  cur.style.transform = `translate(${sx - 4}px, ${sy - 4}px) scale(${CPRESS(t)})`;
+}
+window.seek = seek;
+window.render = seek;
+seek(0);
+</script>
+</body>
+</html>
