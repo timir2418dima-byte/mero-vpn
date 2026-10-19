@@ -18,6 +18,12 @@ def main():
     test = None
     if "--test" in args:
         i = args.index("--test"); test = float(args[i + 1]); del args[i:i + 2]
+    pad_top = 0  # --pad-top N: add a black band above the picture (e.g. 3:4 video -> 9:16)
+    if "--pad-top" in args:
+        i = args.index("--pad-top"); pad_top = int(args[i + 1]); del args[i:i + 2]
+    shift = 0  # --shift-down N: move a letterboxed picture down, eating N px of its bottom black bar
+    if "--shift-down" in args:
+        i = args.index("--shift-down"); shift = int(args[i + 1]); del args[i:i + 2]
     src, out, height, y, *times = args
     height, y, times = int(height), int(y), [float(t) for t in times]
 
@@ -26,6 +32,12 @@ def main():
         cmd += ["-i", BANNER]
 
     chains, last = [], "0:v"
+    if pad_top:
+        chains.append(f"[0:v]pad=iw:ih+{pad_top}:0:{pad_top}:black[padded]")
+        last = "padded"
+    elif shift:
+        chains.append(f"[0:v]crop=iw:ih-{shift}:0:0,pad=iw:ih+{shift}:0:{shift}:black[padded]")
+        last = "padded"
     for n, t in enumerate(times, start=1):
         chains.append(
             f"[{n}:v]setpts=PTS-STARTPTS+{t}/TB,crop=1280:640:0:60,scale=-2:{height},"
